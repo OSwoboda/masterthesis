@@ -30,7 +30,6 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.util.Collector;
 import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.MetricBuilder;
-import org.kairosdb.client.response.Response;
 
 /**
  * Skeleton for a Flink Job.
@@ -53,15 +52,15 @@ public class Job {
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///root/masterthesis/0101.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
+		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///root/masterthesis/10ktail.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<Response> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, Response>(){
+		DataSet<Integer> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, Integer>(){
 
 			private static final long serialVersionUID = 725548890072477896L;
 
 			@Override
-			public void flatMap(Tuple4<String, String, String, Long> arg0, Collector<Response> arg1) throws Exception {
+			public void flatMap(Tuple4<String, String, String, Long> arg0, Collector<Integer> arg1) throws Exception {
 				DateFormat format = new SimpleDateFormat("yyyymmdd");
 				Date date = format.parse(arg0.f1);
 				MetricBuilder builder = MetricBuilder.getInstance();
@@ -69,11 +68,11 @@ public class Job {
 					.addTag("station", arg0.f0)
 					.addDataPoint(date.getTime(), arg0.f3);
 				HttpClient client = new HttpClient("http://localhost:25025");
-				arg1.collect(client.pushMetrics(builder));
+				arg1.collect(client.pushMetrics(builder).getStatusCode());
 				client.shutdown();
 			}
 			
-		});
+		}).setParallelism(4);
 		
 		responses.writeAsText("file:///tmp/insertdata.log");
 
