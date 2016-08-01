@@ -31,8 +31,6 @@ import org.apache.flink.util.Collector;
 import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.MetricBuilder;
 import org.kairosdb.client.response.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Skeleton for a Flink Job.
@@ -52,14 +50,11 @@ import org.slf4j.LoggerFactory;
 public class Job {
 
 	public static void main(String[] args) throws Exception {
-		final Logger LOG = LoggerFactory.getLogger(Job.class);
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///root/masterthesis/0101.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
 				.types(String.class, String.class, String.class, Long.class);
-		
-		final HttpClient client = new HttpClient("http://localhost:4242");
 		
 		DataSet<Response> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, Response>(){
 
@@ -73,8 +68,9 @@ public class Job {
 				builder.addMetric(arg0.f2)
 					.addTag("station", arg0.f0)
 					.addDataPoint(date.getTime(), arg0.f3);
-				
+				HttpClient client = new HttpClient("http://localhost:25025");
 				arg1.collect(client.pushMetrics(builder));
+				client.shutdown();
 			}
 			
 		});
@@ -83,6 +79,5 @@ public class Job {
 
 		// execute program
 		env.execute("Insert Data");
-		client.shutdown();
 	}
 }
