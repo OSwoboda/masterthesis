@@ -53,10 +53,10 @@ public class Job {
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///home/root/masterthesis/pushdata/1k.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
+		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///root/masterthesis/1k.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
 				.types(String.class, String.class, String.class, Long.class);
 		
-		csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, Response>(){
+		DataSet<Response> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, Response>(){
 
 			private static final long serialVersionUID = 725548890072477896L;
 
@@ -68,14 +68,16 @@ public class Job {
 				builder.addMetric(arg0.f2)
 					.addTag("station", arg0.f0)
 					.addDataPoint(date.getTime(), arg0.f3);
-				HttpClient client = new HttpClient("http://localhost:25025");
+				HttpClient client = new HttpClient("http://localhost:4242");
 				arg1.collect(client.pushMetrics(builder));
 				client.shutdown();
 			}
 			
 		});
+		
+		responses.writeAsText("file:///tmp/insertdata.log");
 
 		// execute program
-		env.execute("Flink Java API Skeleton");
+		env.execute("Insert Data");
 	}
 }
