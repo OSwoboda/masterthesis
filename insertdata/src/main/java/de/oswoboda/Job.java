@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.flink.api.common.functions.GroupReduceFunction;
+import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 
 /**
@@ -30,6 +31,7 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
+import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,29 +60,75 @@ public class Job {
 		
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
-		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");		
+		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
+		String groupBy = params.get("groubBy", "1");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<String> responses = csvInput.groupBy(2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
-
-			private static final long serialVersionUID = 2094277688222838209L;
-
-			@Override
-			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
-				MetricBuilder builder = MetricBuilder.getInstance();
-				int i = 0;
-				for (Tuple4<String, String, String, Long> metric : in) {
-					i++;
-					DateFormat format = new SimpleDateFormat("yyyymmdd");
-					Date date = format.parse(metric.f1);
-					String output = i+": "+metric.f0+","+metric.f1+","+metric.f2+","+metric.f3;
-					out.collect(output);
+		DataSet<String> responses = null;
+		if (groupBy.equals("1")) {
+			responses = csvInput.groupBy(2).sortGroup(0, Order.ANY).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+	
+				private static final long serialVersionUID = 2094277688222838209L;
+	
+				@Override
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
+					MetricBuilder builder = MetricBuilder.getInstance();
+					int i = 0;
+					for (Tuple4<String, String, String, Long> metric : in) {
+						i++;
+						DateFormat format = new SimpleDateFormat("yyyymmdd");
+						Date date = format.parse(metric.f1);
+						builder.addMetric(metric.f2)
+							.addTag("station", metric.f0)
+							.addDataPoint(date.getTime(), metric.f3);
+						out.collect(i+": "+metric.f0+","+metric.f1+","+metric.f2+","+metric.f3);
+					}
+					/*String masterip = params.get("masterip", "http://localhost:25025");
+					HttpClient client = new HttpClient(masterip);
+					Response response = client.pushMetrics(builder);
+					if (response.getStatusCode() != 204) {
+						for (String error : response.getErrors()) {
+							out.collect(response.getStatusCode()+": "+error);
+						}
+					}
+					client.shutdown();*/
 				}
-			}
-			
-		}).setParallelism(4);/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
+				
+			}).setParallelism(4);
+		} else {		
+			responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+	
+				private static final long serialVersionUID = 2094277688222838209L;
+	
+				@Override
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
+					MetricBuilder builder = MetricBuilder.getInstance();
+					Tuple4<String, String, String, Long> first = in.iterator().next();
+					Metric metric = builder.addMetric(first.f2).addTag("station", first.f0);
+					int i = 0;
+					for (Tuple4<String, String, String, Long> data : in) {
+						i++;
+						DateFormat format = new SimpleDateFormat("yyyymmdd");
+						Date date = format.parse(data.f1);
+						metric.addDataPoint(date.getTime(), data.f3);
+						out.collect(i+": "+data.f0+","+data.f1+","+data.f2+","+data.f3);
+					}
+					/*String masterip = params.get("masterip", "http://localhost:25025");
+					HttpClient client = new HttpClient(masterip);
+					Response response = client.pushMetrics(builder);
+					if (response.getStatusCode() != 204) {
+						for (String error : response.getErrors()) {
+							out.collect(response.getStatusCode()+": "+error);
+						}
+					}
+					client.shutdown();*/
+				}
+				
+			}).setParallelism(4);
+		}
+		/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
 
 			private static final long serialVersionUID = 725548890072477896L;
 
