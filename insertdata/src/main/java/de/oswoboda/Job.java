@@ -5,7 +5,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.apache.flink.api.common.functions.GroupReduceFunction;
-import org.apache.flink.api.common.operators.Order;
 import org.apache.flink.api.java.DataSet;
 
 /**
@@ -70,26 +69,21 @@ public class Job {
 		
 		DataSet<String> responses = null;
 		if (groupBy.equals("1")) {
-			responses = csvInput.groupBy(2).sortGroup(0, Order.ANY).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+			responses = csvInput.groupBy(2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
 	
 				private static final long serialVersionUID = 2094277688222838209L;
 	
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
 					MetricBuilder builder = MetricBuilder.getInstance();
-					String station = null;
-					Metric metric = null;
 					for (Tuple4<String, String, String, Long> data : in) {
-						if (!data.f0.equals(station)) {
-							station = data.f0;
-							metric = builder.addMetric(data.f2).addTag("station", data.f0);
-						}
 						DateFormat format = new SimpleDateFormat("yyyymmdd");
 						Date date = format.parse(data.f1);
-						metric.addDataPoint(date.getTime(), data.f3);
+						builder.addMetric(data.f2)
+							.addTag("station", data.f0)
+							.addDataPoint(date.getTime(), data.f3);
 					}
-					out.collect(String.valueOf(builder.getMetrics().size()));
-					/*String masterip = params.get("masterip", "http://localhost:25025");
+					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
@@ -98,10 +92,10 @@ public class Job {
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();*/
+					client.shutdown();
 				}
 				
-			});
+			}).setParallelism(4);
 		} else {		
 			responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
 	
