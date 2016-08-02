@@ -86,8 +86,7 @@ public class Job {
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
-					LOG.info(String.valueOf(builder.getMetrics().size()));
-					System.out.println(builder.getMetrics().size());
+					out.collect(String.valueOf(builder.getMetrics().size()));
 					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
@@ -116,8 +115,7 @@ public class Job {
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
-					LOG.info(String.valueOf(builder.getMetrics().size()));
-					System.out.println(builder.getMetrics().size());
+					out.collect(String.valueOf(builder.getMetrics().size()));
 					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
