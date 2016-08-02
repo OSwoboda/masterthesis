@@ -31,10 +31,8 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
-import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
-import org.kairosdb.client.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,6 +87,7 @@ public class Job {
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
 					LOG.info(String.valueOf(builder.getMetrics().size()));
+					System.out.println(builder.getMetrics().size());
 					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
@@ -118,6 +117,7 @@ public class Job {
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
 					LOG.info(String.valueOf(builder.getMetrics().size()));
+					System.out.println(builder.getMetrics().size());
 					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
