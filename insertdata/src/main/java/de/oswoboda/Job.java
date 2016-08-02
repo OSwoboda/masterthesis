@@ -4,7 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.java.DataSet;
 
 /**
@@ -30,9 +30,9 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
-import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.MetricBuilder;
-import org.kairosdb.client.response.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Skeleton for a Flink Job.
@@ -52,6 +52,7 @@ import org.kairosdb.client.response.Response;
 public class Job {
 
 	public static void main(String[] args) throws Exception {
+		final Logger LOG = LoggerFactory.getLogger(Job.class);
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		
@@ -62,7 +63,24 @@ public class Job {
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<String> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
+		DataSet<String> responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+
+			private static final long serialVersionUID = 2094277688222838209L;
+
+			@Override
+			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
+				MetricBuilder builder = MetricBuilder.getInstance();
+				int i = 0;
+				for (Tuple4<String, String, String, Long> metric : in) {
+					i++;
+					DateFormat format = new SimpleDateFormat("yyyymmdd");
+					Date date = format.parse(metric.f1);
+					String output = i+": "+metric.f0+","+metric.f1+","+metric.f2+","+metric.f3;
+					out.collect(output);
+				}
+			}
+			
+		}).setParallelism(4);/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
 
 			private static final long serialVersionUID = 725548890072477896L;
 
@@ -83,7 +101,7 @@ public class Job {
 				client.shutdown();
 			}
 			
-		}).setParallelism(32);
+		}).setParallelism(32);*/
 		
 		responses.writeAsText(outputPath, WriteMode.OVERWRITE);
 
