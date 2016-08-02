@@ -110,9 +110,11 @@ public class Job {
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
 					MetricBuilder builder = MetricBuilder.getInstance();
-					Tuple4<String, String, String, Long> first = in.iterator().next();
-					Metric metric = builder.addMetric(first.f2).addTag("station", first.f0);
+					Metric metric = null;
 					for (Tuple4<String, String, String, Long> data : in) {
+						if (metric == null) {
+							metric = builder.addMetric(data.f2).addTag("station", data.f0);
+						}
 						DateFormat format = new SimpleDateFormat("yyyymmdd");
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
