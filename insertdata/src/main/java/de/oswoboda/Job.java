@@ -131,7 +131,7 @@ public class Job {
 					client.shutdown();		
 				}
 				
-			});
+			}).setParallelism(4);
 		}
 		/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
 
