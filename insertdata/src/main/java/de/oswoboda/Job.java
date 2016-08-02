@@ -88,6 +88,7 @@ public class Job {
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
+					LOG.info(String.valueOf(builder.getMetrics().size()));
 					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
@@ -98,7 +99,6 @@ public class Job {
 						}
 					}
 					client.shutdown();
-					LOG.info(String.valueOf(builder.getMetrics().size()));
 				}
 				
 			}).setParallelism(4);
@@ -117,6 +117,7 @@ public class Job {
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
+					LOG.info(String.valueOf(builder.getMetrics().size()));
 					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
@@ -126,8 +127,7 @@ public class Job {
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();
-					LOG.info(String.valueOf(builder.getMetrics().size()));
+					client.shutdown();					
 				}
 				
 			}).setParallelism(4);
