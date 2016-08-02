@@ -62,93 +62,39 @@ public class Job {
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
 		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
-		String groupBy = params.get("groupBy", "1");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<String> responses = null;
-		if (groupBy.equals("1")) {
-			responses = csvInput.groupBy(2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
-	
-				private static final long serialVersionUID = 2094277688222838209L;
-	
-				@Override
-				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
-					MetricBuilder builder = MetricBuilder.getInstance();
-					for (Tuple4<String, String, String, Long> data : in) {
-						DateFormat format = new SimpleDateFormat("yyyymmdd");
-						Date date = format.parse(data.f1);
-						builder.addMetric(data.f2)
-							.addTag("station", data.f0)
-							.addDataPoint(date.getTime(), data.f3);
-					}
-					String masterip = params.get("masterip", "http://localhost:25025");
-					HttpClient client = new HttpClient(masterip);
-					Response response = client.pushMetrics(builder);
-					if (response.getStatusCode() != 204) {
-						for (String error : response.getErrors()) {
-							LOG.error(error);
-							out.collect(response.getStatusCode()+": "+error);
-						}
-					}
-					client.shutdown();
-				}
-				
-			}).setParallelism(4);
-		} else {		
-			responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
-	
-				private static final long serialVersionUID = 2094277688222838209L;
-	
-				@Override
-				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
-					MetricBuilder builder = MetricBuilder.getInstance();
-					Metric metric = null;
-					for (Tuple4<String, String, String, Long> data : in) {
-						if (metric == null) {
-							metric = builder.addMetric(data.f2).addTag("station", data.f0);
-						}
-						DateFormat format = new SimpleDateFormat("yyyymmdd");
-						Date date = format.parse(data.f1);
-						metric.addDataPoint(date.getTime(), data.f3);
-					}
-					String masterip = params.get("masterip", "http://localhost:25025");
-					HttpClient client = new HttpClient(masterip);
-					Response response = client.pushMetrics(builder);
-					if (response.getStatusCode() != 204) {
-						for (String error : response.getErrors()) {
-							LOG.error(error);
-							out.collect(response.getStatusCode()+": "+error);
-						}
-					}
-					client.shutdown();		
-				}
-				
-			}).setParallelism(4);
-		}
-		/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
+		DataSet<String> responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
 
-			private static final long serialVersionUID = 725548890072477896L;
+			private static final long serialVersionUID = 2094277688222838209L;
 
 			@Override
-			public void flatMap(Tuple4<String, String, String, Long> arg0, Collector<String> arg1) throws Exception {				
-				DateFormat format = new SimpleDateFormat("yyyymmdd");
-				Date date = format.parse(arg0.f1);
+			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
 				MetricBuilder builder = MetricBuilder.getInstance();
-				builder.addMetric(arg0.f2)
-					.addTag("station", arg0.f0)
-					.addDataPoint(date.getTime(), arg0.f3);
+				Metric metric = null;
+				for (Tuple4<String, String, String, Long> data : in) {
+					if (metric == null) {
+						metric = builder.addMetric(data.f2).addTag("station", data.f0);
+					}
+					DateFormat format = new SimpleDateFormat("yyyymmdd");
+					Date date = format.parse(data.f1);
+					metric.addDataPoint(date.getTime(), data.f3);
+				}
 				String masterip = params.get("masterip", "http://localhost:25025");
 				HttpClient client = new HttpClient(masterip);
 				Response response = client.pushMetrics(builder);
 				if (response.getStatusCode() != 204) {
-					arg1.collect(arg0.f0+","+arg0.f1+","+arg0.f2+","+arg0.f3+","+response.getStatusCode());
+					for (String error : response.getErrors()) {
+						LOG.error(error);
+						out.collect(response.getStatusCode()+": "+error);
+					}
 				}
-				client.shutdown();
+				client.shutdown();		
 			}
 			
-		}).setParallelism(32);*/
+		}).setParallelism(4);
 		
 		responses.writeAsText(outputPath, WriteMode.OVERWRITE);
 
