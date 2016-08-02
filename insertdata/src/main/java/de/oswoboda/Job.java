@@ -31,8 +31,10 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
+import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
+import org.kairosdb.client.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,25 +77,27 @@ public class Job {
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
 					MetricBuilder builder = MetricBuilder.getInstance();
-					int i = 0;
-					for (Tuple4<String, String, String, Long> metric : in) {
-						i++;
+					String station = null;
+					Metric metric = null;
+					for (Tuple4<String, String, String, Long> data : in) {
+						if (!data.f0.equals(station)) {
+							station = data.f0;
+							metric = builder.addMetric(data.f2).addTag("station", data.f0);
+						}
 						DateFormat format = new SimpleDateFormat("yyyymmdd");
-						Date date = format.parse(metric.f1);
-						builder.addMetric(metric.f2)
-							.addTag("station", metric.f0)
-							.addDataPoint(date.getTime(), metric.f3);
-						out.collect(i+": "+metric.f0+","+metric.f1+","+metric.f2+","+metric.f3);
+						Date date = format.parse(data.f1);
+						metric.addDataPoint(date.getTime(), data.f3);
 					}
-					/*String masterip = params.get("masterip", "http://localhost:25025");
+					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
 						for (String error : response.getErrors()) {
+							LOG.error(error);
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();*/
+					client.shutdown();
 				}
 				
 			}).setParallelism(4);
@@ -107,23 +111,21 @@ public class Job {
 					MetricBuilder builder = MetricBuilder.getInstance();
 					Tuple4<String, String, String, Long> first = in.iterator().next();
 					Metric metric = builder.addMetric(first.f2).addTag("station", first.f0);
-					int i = 0;
 					for (Tuple4<String, String, String, Long> data : in) {
-						i++;
 						DateFormat format = new SimpleDateFormat("yyyymmdd");
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
-						out.collect(i+": "+data.f0+","+data.f1+","+data.f2+","+data.f3);
 					}
-					/*String masterip = params.get("masterip", "http://localhost:25025");
+					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
 						for (String error : response.getErrors()) {
+							LOG.error(error);
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();*/
+					client.shutdown();
 				}
 				
 			}).setParallelism(4);
