@@ -101,7 +101,7 @@ public class Job {
 					client.shutdown();
 				}
 				
-			}).setParallelism(4);
+			});
 		} else {		
 			responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
 	
@@ -130,7 +130,7 @@ public class Job {
 					client.shutdown();					
 				}
 				
-			}).setParallelism(4);
+			});
 		}
 		/*.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
 
