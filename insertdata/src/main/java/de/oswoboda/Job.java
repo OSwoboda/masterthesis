@@ -89,7 +89,7 @@ public class Job {
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
 					LOG.info(String.valueOf(builder.getMetrics().size()));
-					String masterip = params.get("masterip", "http://localhost:25025");
+					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
@@ -98,7 +98,7 @@ public class Job {
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();
+					client.shutdown();*/
 				}
 				
 			});
@@ -118,7 +118,7 @@ public class Job {
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
 					LOG.info(String.valueOf(builder.getMetrics().size()));
-					String masterip = params.get("masterip", "http://localhost:25025");
+					/*String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
@@ -127,7 +127,7 @@ public class Job {
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();					
+					client.shutdown();*/			
 				}
 				
 			});
