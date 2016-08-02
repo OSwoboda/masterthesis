@@ -98,6 +98,7 @@ public class Job {
 						}
 					}
 					client.shutdown();
+					out.collect(String.valueOf(builder.getMetrics().size()));
 				}
 				
 			}).setParallelism(4);
@@ -126,6 +127,7 @@ public class Job {
 						}
 					}
 					client.shutdown();
+					out.collect(String.valueOf(builder.getMetrics().size()));
 				}
 				
 			}).setParallelism(4);
