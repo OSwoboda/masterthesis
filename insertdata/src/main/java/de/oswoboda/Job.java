@@ -57,7 +57,7 @@ public class Job {
 		
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
-		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
+		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");		
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
@@ -67,14 +67,15 @@ public class Job {
 			private static final long serialVersionUID = 725548890072477896L;
 
 			@Override
-			public void flatMap(Tuple4<String, String, String, Long> arg0, Collector<String> arg1) throws Exception {
+			public void flatMap(Tuple4<String, String, String, Long> arg0, Collector<String> arg1) throws Exception {				
 				DateFormat format = new SimpleDateFormat("yyyymmdd");
 				Date date = format.parse(arg0.f1);
 				MetricBuilder builder = MetricBuilder.getInstance();
 				builder.addMetric(arg0.f2)
 					.addTag("station", arg0.f0)
 					.addDataPoint(date.getTime(), arg0.f3);
-				HttpClient client = new HttpClient("http://localhost:25025");
+				String masterip = params.get("masterip", "http://localhost:25025");
+				HttpClient client = new HttpClient(masterip);
 				Response response = client.pushMetrics(builder);
 				if (response.getStatusCode() != 204) {
 					arg1.collect(arg0.f0+","+arg0.f1+","+arg0.f2+","+arg0.f3+","+response.getStatusCode());
