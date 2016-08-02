@@ -53,7 +53,7 @@ public class Job {
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 
-		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("file:///root/masterthesis/100k.csv") //"hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
+		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
 				.types(String.class, String.class, String.class, Long.class);
 		
 		DataSet<String> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
@@ -76,9 +76,9 @@ public class Job {
 				client.shutdown();
 			}
 			
-		}).setParallelism(4);
+		}).setParallelism(32);
 		
-		responses.writeAsText("file:///tmp/insertdata.log");
+		responses.writeAsText("hdfs:///user/oSwoboda/insertdata.log");
 
 		// execute program
 		env.execute("Insert Data");
