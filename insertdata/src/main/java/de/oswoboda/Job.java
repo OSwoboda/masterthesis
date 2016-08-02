@@ -63,7 +63,7 @@ public class Job {
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<String> responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+		DataSet<String> responses = csvInput.groupBy(2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
 
 			private static final long serialVersionUID = 2094277688222838209L;
 
