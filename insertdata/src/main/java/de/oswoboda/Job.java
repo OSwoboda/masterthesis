@@ -28,6 +28,7 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
 import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.MetricBuilder;
@@ -56,7 +57,7 @@ public class Job {
 		
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
-		String outputPath = params.get("output", "hdfs:///user/oSwoboda/insertdata.csv");
+		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
@@ -83,7 +84,7 @@ public class Job {
 			
 		}).setParallelism(32);
 		
-		responses.writeAsText(outputPath);
+		responses.writeAsText(outputPath, WriteMode.OVERWRITE);
 
 		// execute program
 		env.execute("Insert Data");
