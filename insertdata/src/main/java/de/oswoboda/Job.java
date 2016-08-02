@@ -55,13 +55,12 @@ import org.slf4j.LoggerFactory;
 public class Job {
 
 	public static void main(String[] args) throws Exception {
-		final Logger LOG = LoggerFactory.getLogger(Job.class);
-		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-		
+		final Logger LOG = LoggerFactory.getLogger(Job.class);		
 		final ParameterTool params = ParameterTool.fromArgs(args);
-		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
-		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
+		
+		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
+		String outputPath = params.get("output", "hdfs:///user/flink/output/insertdata");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
@@ -94,7 +93,7 @@ public class Job {
 				client.shutdown();		
 			}
 			
-		}).setParallelism(4);
+		}).setParallelism(32);
 		
 		responses.writeAsText(outputPath, WriteMode.OVERWRITE);
 
