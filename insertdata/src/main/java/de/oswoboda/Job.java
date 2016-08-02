@@ -31,8 +31,10 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
+import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
+import org.kairosdb.client.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +63,7 @@ public class Job {
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
 		String outputPath = params.get("output", "hdfs:///user/oSwoboda/output/insertdata");
-		String groupBy = params.get("groubBy", "1");
+		String groupBy = params.get("groupBy", "1");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
@@ -115,8 +117,7 @@ public class Job {
 						Date date = format.parse(data.f1);
 						metric.addDataPoint(date.getTime(), data.f3);
 					}
-					out.collect(String.valueOf(builder.getMetrics().size()));
-					/*String masterip = params.get("masterip", "http://localhost:25025");
+					String masterip = params.get("masterip", "http://localhost:25025");
 					HttpClient client = new HttpClient(masterip);
 					Response response = client.pushMetrics(builder);
 					if (response.getStatusCode() != 204) {
@@ -125,7 +126,7 @@ public class Job {
 							out.collect(response.getStatusCode()+": "+error);
 						}
 					}
-					client.shutdown();*/			
+					client.shutdown();		
 				}
 				
 			});
