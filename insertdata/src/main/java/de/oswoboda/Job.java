@@ -27,6 +27,7 @@ import org.apache.flink.api.java.DataSet;
 
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.MetricBuilder;
@@ -52,8 +53,12 @@ public class Job {
 	public static void main(String[] args) throws Exception {
 		// set up the execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+		
+		final ParameterTool params = ParameterTool.fromArgs(args);
+		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv");
+		String outputPath = params.get("output", "hdfs:///user/oSwoboda/insertdata.csv");
 
-		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile("hdfs:///user/oSwoboda/dataset/superghcnd_full_20160728.csv")
+		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
 		DataSet<String> responses = csvInput.flatMap(new FlatMapFunction<Tuple4<String, String, String, Long>, String>(){
@@ -78,7 +83,7 @@ public class Job {
 			
 		}).setParallelism(32);
 		
-		responses.writeAsText("hdfs:///user/oSwoboda/insertdata.log");
+		responses.writeAsText(outputPath);
 
 		// execute program
 		env.execute("Insert Data");
