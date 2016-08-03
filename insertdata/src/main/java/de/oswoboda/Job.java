@@ -77,7 +77,7 @@ public class Job {
 					if (metric == null) {
 						metric = builder.addMetric(data.f2).addTag("station", data.f0);
 					}
-					DateFormat format = new SimpleDateFormat("yyyymmdd");
+					DateFormat format = new SimpleDateFormat("yyyyMMdd");
 					Date date = format.parse(data.f1);
 					metric.addDataPoint(date.getTime(), data.f3);
 				}
