@@ -56,7 +56,7 @@ public class Job {
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
-				.types(String.class, String.class, String.class, Long.class);
+				.types(String.class, String.class, String.class, Long.class).setParallelism(4);
 		
 		DataSet<MetricBuilder> builders = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
 
@@ -77,12 +77,12 @@ public class Job {
 				out.collect(builder);
 			}
 			
-		});
+		}).setParallelism(2);
 		
 		KairosdbOutputFormat outputFormat = new KairosdbOutputFormat();
 		outputFormat.setMasterIP(params.get("masterip", "http://localhost:25025"));
 		
-		builders.output(outputFormat);
+		builders.output(outputFormat).setParallelism(2);
 
 		// execute program
 		env.execute("Insert Data");
