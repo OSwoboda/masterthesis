@@ -77,7 +77,7 @@ public class Job {
 				out.collect(builder);
 			}
 			
-		}).setParallelism(32);
+		});
 		
 		KairosdbOutputFormat outputFormat = new KairosdbOutputFormat();
 		outputFormat.setMasterIP(params.get("masterip", "http://localhost:25025"));
