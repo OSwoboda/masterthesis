@@ -28,14 +28,9 @@ import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.core.fs.FileSystem.WriteMode;
 import org.apache.flink.util.Collector;
-import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
-import org.kairosdb.client.response.Response;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Skeleton for a Flink Job.
@@ -56,21 +51,19 @@ public class Job {
 
 	public static void main(String[] args) throws Exception {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-		final Logger LOG = LoggerFactory.getLogger(Job.class);		
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
-		String outputPath = params.get("output", "hdfs:///user/flink/output/insertdata");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<String> responses = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, String>() {
+		DataSet<MetricBuilder> builders = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
 
 			private static final long serialVersionUID = 2094277688222838209L;
 
 			@Override
-			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<String> out) throws Exception {
+			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<MetricBuilder> out) throws Exception {
 				MetricBuilder builder = MetricBuilder.getInstance();
 				Metric metric = null;
 				for (Tuple4<String, String, String, Long> data : in) {
@@ -81,21 +74,15 @@ public class Job {
 					Date date = format.parse(data.f1);
 					metric.addDataPoint(date.getTime(), data.f3);
 				}
-				String masterip = params.get("masterip", "http://localhost:25025");
-				HttpClient client = new HttpClient(masterip);
-				Response response = client.pushMetrics(builder);
-				if (response.getStatusCode() != 204) {
-					for (String error : response.getErrors()) {
-						LOG.error(error);
-						out.collect(response.getStatusCode()+": "+error);
-					}
-				}
-				client.shutdown();		
+				out.collect(builder);
 			}
 			
 		}).setParallelism(32);
 		
-		responses.writeAsText(outputPath, WriteMode.OVERWRITE);
+		KairosdbOutputFormat outputFormat = new KairosdbOutputFormat();
+		outputFormat.setMasterIP(params.get("masterip", "http://localhost:25025"));
+		
+		builders.output(outputFormat);
 
 		// execute program
 		env.execute("Insert Data");
