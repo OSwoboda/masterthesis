@@ -40,14 +40,15 @@ public class Job {
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
-		String metricName = params.get("metric", "type");
+		boolean type = params.getBoolean("type", true);
+		boolean station = params.getBoolean("station", false);
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
 		UnsortedGrouping<Tuple4<String, String, String, Long>> groupedInput = csvInput.groupBy(0,2);
-		DataSet<MetricBuilder> builders;
-		if (metricName.equals("type")) {
+		DataSet<MetricBuilder> builders = null;
+		if (type) {
 			builders = groupedInput.reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
 	
 				private static final long serialVersionUID = 1L;
@@ -68,7 +69,8 @@ public class Job {
 				}
 				
 			});
-		} else {		
+		}
+		if (station) {
 			builders = groupedInput.reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
 	
 				private static final long serialVersionUID = 1L;
@@ -96,7 +98,6 @@ public class Job {
 		
 		builders.output(outputFormat);
 
-		// execute program
 		env.execute("Insert Data");
 	}
 }
