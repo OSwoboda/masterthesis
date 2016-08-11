@@ -26,27 +26,13 @@ import org.apache.flink.api.java.DataSet;
  */
 
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.operators.UnsortedGrouping;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
 
-/**
- * Skeleton for a Flink Job.
- *
- * For a full example of a Flink Job, see the WordCountJob.java file in the
- * same package/directory or have a look at the website.
- *
- * You can also generate a .jar file that you can submit on your Flink
- * cluster.
- * Just type
- * 		mvn clean package
- * in the projects root directory.
- * You will find the jar in
- * 		target/flink-quickstart-0.1-SNAPSHOT-Sample.jar
- *
- */
 public class Job {
 
 	public static void main(String[] args) throws Exception {
@@ -54,30 +40,56 @@ public class Job {
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		
 		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
+		String metricName = params.get("metric", "type");
 
 		DataSet<Tuple4<String, String, String, Long>> csvInput = env.readCsvFile(inputPath)
 				.types(String.class, String.class, String.class, Long.class);
 		
-		DataSet<MetricBuilder> builders = csvInput.groupBy(0,2).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
-
-			private static final long serialVersionUID = 2094277688222838209L;
-
-			@Override
-			public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<MetricBuilder> out) throws Exception {
-				MetricBuilder builder = MetricBuilder.getInstance();
-				Metric metric = null;
-				for (Tuple4<String, String, String, Long> data : in) {
-					if (metric == null) {
-						metric = builder.addMetric(data.f2).addTag("station", data.f0);
+		UnsortedGrouping<Tuple4<String, String, String, Long>> groupedInput = csvInput.groupBy(0,2);
+		DataSet<MetricBuilder> builders;
+		if (metricName.equals("type")) {
+			builders = groupedInput.reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<MetricBuilder> out) throws Exception {
+					MetricBuilder builder = MetricBuilder.getInstance();
+					Metric metric = null;
+					for (Tuple4<String, String, String, Long> data : in) {
+						if (metric == null) {
+							metric = builder.addMetric(data.f2).addTag("station", data.f0);
+						}
+						DateFormat format = new SimpleDateFormat("yyyyMMdd");
+						Date date = format.parse(data.f1);
+						metric.addDataPoint(date.getTime(), data.f3);
 					}
-					DateFormat format = new SimpleDateFormat("yyyyMMdd");
-					Date date = format.parse(data.f1);
-					metric.addDataPoint(date.getTime(), data.f3);
+					out.collect(builder);
 				}
-				out.collect(builder);
-			}
-			
-		});
+				
+			});
+		} else {		
+			builders = groupedInput.reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, MetricBuilder>() {
+	
+				private static final long serialVersionUID = 1L;
+	
+				@Override
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<MetricBuilder> out) throws Exception {
+					MetricBuilder builder = MetricBuilder.getInstance();
+					Metric metric = null;
+					for (Tuple4<String, String, String, Long> data : in) {
+						if (metric == null) {
+							metric = builder.addMetric(data.f0).addTag("type", data.f2);
+						}
+						DateFormat format = new SimpleDateFormat("yyyyMMdd");
+						Date date = format.parse(data.f1);
+						metric.addDataPoint(date.getTime(), data.f3);
+					}
+					out.collect(builder);
+				}
+				
+			});
+		}
 		
 		KairosdbOutputFormat outputFormat = new KairosdbOutputFormat();
 		outputFormat.setMasterIP(params.get("masterip", "http://localhost:25025"));
