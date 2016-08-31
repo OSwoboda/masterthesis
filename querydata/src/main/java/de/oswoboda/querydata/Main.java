@@ -7,7 +7,9 @@ import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.QueryBuilder;
 import org.kairosdb.client.builder.QueryMetric;
 import org.kairosdb.client.response.GetResponse;
+import org.kairosdb.client.response.Queries;
 import org.kairosdb.client.response.QueryResponse;
+import org.kairosdb.client.response.Results;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -35,7 +37,15 @@ public class Main {
     	}
     	System.out.println("Stations :"+i);
     	QueryResponse qResponse = client.query(builder);
-    	System.out.println(qResponse.getBody());
+    	int sampleSize = 0;
+    	int tagValues = 0;
+    	for (Queries queries : qResponse.getQueries()) {
+    		sampleSize += queries.getSampleSize();
+    		for (Results results: queries.getResults()) {
+    			tagValues += results.getTags().values().size();
+    		}
+    	}
+    	System.out.println("sampleSize: "+sampleSize+" tagValues: "+tagValues);
     	client.shutdown();
     	long endTime = System.currentTimeMillis();
     	System.out.println("End: "+System.currentTimeMillis());
