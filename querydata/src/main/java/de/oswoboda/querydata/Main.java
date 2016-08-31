@@ -26,9 +26,13 @@ public class Main {
     	QueryMetric metric = builder.setStart(start)
     		.setEnd(end)
     		.addMetric("TMIN");
+    	int i = 0;
     	for (String station : stationResponse.getResults()) {
-    		metric.addTag("station", station);
+    		if (i <= 10)
+    			metric.addTag("station", station);
+    		i++;
     	}
+    	System.out.println(i);
     	QueryResponse qResponse = client.query(builder);
     	System.out.println(qResponse.getBody());
     	client.shutdown();
