@@ -5,6 +5,8 @@ import java.util.Date;
 
 import org.kairosdb.client.HttpClient;
 import org.kairosdb.client.builder.QueryBuilder;
+import org.kairosdb.client.builder.QueryMetric;
+import org.kairosdb.client.response.GetResponse;
 import org.kairosdb.client.response.Queries;
 import org.kairosdb.client.response.QueryResponse;
 
@@ -13,27 +15,25 @@ public class Main {
     	long startTime = System.currentTimeMillis();
     	System.out.println("Start: "+startTime);
     	HttpClient client = new HttpClient("http://ring01.ext.mgm-tp.com:25025");
-    	//GetResponse stationResponse = client.getTagValues();
+    	GetResponse stationResponse = client.getTagValues();
     	
     	Calendar calendar = Calendar.getInstance();
-    	calendar.set(1900, 0, 1);
+    	calendar.set(2005, 0, 1);
     	Date start = calendar.getTime();
-    	calendar.set(2017, 0, 1);
+    	calendar.set(2015, 0, 1);
     	Date end = calendar.getTime();
     	
     	QueryBuilder builder = QueryBuilder.getInstance();
-    	builder.setStart(start)
+    	QueryMetric metric = builder.setStart(start)
     		.setEnd(end)
-    		.addMetric(args[0])
-    		.addTag("station", args[1]);
-    	/*int i = 0;
+    		.addMetric(args[0]);
+    	int i = 0;
     	for (String station : stationResponse.getResults()) {
-    		if (i <= Integer.parseInt(args[0])) {
+    		if (i <= 10000) {
     			metric.addTag("station", station);
     		}
     		i++;
     	}
-    	System.out.println("Stations :"+i);*/
     	QueryResponse qResponse = client.query(builder);
     	long endTime = System.currentTimeMillis();
     	System.out.println("End: "+System.currentTimeMillis());
