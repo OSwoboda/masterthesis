@@ -18,7 +18,7 @@ public class Main {
     	GetResponse stationResponse = client.getTagValues();
     	
     	Calendar calendar = Calendar.getInstance();
-    	calendar.set(2010, 0, 1);
+    	calendar.set(2014, 0, 1);
     	Date start = calendar.getTime();
     	calendar.set(2015, 0, 1);
     	Date end = calendar.getTime();
@@ -36,7 +36,6 @@ public class Main {
     	}
     	System.out.println("Stations :"+i);
     	QueryResponse qResponse = client.query(builder);
-    	System.out.println(qResponse.getBody());
     	int sampleSize = 0;
     	for (Queries queries : qResponse.getQueries()) {
     		sampleSize += queries.getSampleSize();
