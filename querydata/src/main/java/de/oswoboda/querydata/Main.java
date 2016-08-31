@@ -4,9 +4,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.kairosdb.client.HttpClient;
-import org.kairosdb.client.builder.AggregatorFactory;
 import org.kairosdb.client.builder.QueryBuilder;
-import org.kairosdb.client.builder.TimeUnit;
 import org.kairosdb.client.response.Queries;
 import org.kairosdb.client.response.QueryResponse;
 
@@ -27,8 +25,7 @@ public class Main {
     	builder.setStart(start)
     		.setEnd(end)
     		.addMetric(args[0])
-    		.addTag("station", args[1])
-    		.addAggregator(AggregatorFactory.createMinAggregator(200, TimeUnit.YEARS));
+    		.addTag("station", args[1]);
     	/*int i = 0;
     	for (String station : stationResponse.getResults()) {
     		if (i <= Integer.parseInt(args[0])) {
