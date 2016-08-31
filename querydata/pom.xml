@@ -21,7 +21,7 @@
 		  <configuration>
 		    <archive>
 		      <manifest>
-		        <mainClass>de.oswoboda.querydata.MainClass</mainClass>
+		        <mainClass>de.oswoboda.querydata.Main</mainClass>
 		      </manifest>
 		    </archive>
 		    <descriptorRefs>
