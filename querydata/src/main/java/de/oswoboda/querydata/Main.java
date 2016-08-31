@@ -28,11 +28,12 @@ public class Main {
     		.addMetric("TMIN");
     	int i = 0;
     	for (String station : stationResponse.getResults()) {
-    		if (i <= 10)
+    		if (i <= 100) {
     			metric.addTag("station", station);
+    		}
     		i++;
     	}
-    	System.out.println(i);
+    	System.out.println("Stations :"+i);
     	QueryResponse qResponse = client.query(builder);
     	System.out.println(qResponse.getBody());
     	client.shutdown();
