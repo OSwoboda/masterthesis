@@ -18,9 +18,9 @@ public class Main {
     	GetResponse stationResponse = client.getTagValues();
     	
     	Calendar calendar = Calendar.getInstance();
-    	calendar.set(2015, 0, 1);
+    	calendar.set(2010, 0, 1);
     	Date start = calendar.getTime();
-    	calendar.set(2015, 0, 2);
+    	calendar.set(2015, 0, 1);
     	Date end = calendar.getTime();
     	
     	QueryBuilder builder = QueryBuilder.getInstance();
