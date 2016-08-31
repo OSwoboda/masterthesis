@@ -28,7 +28,7 @@ public class Main {
     		.setEnd(end)
     		.addMetric(args[0])
     		.addTag("station", args[1])
-    		.addAggregator(AggregatorFactory.createAverageAggregator(200, TimeUnit.YEARS));
+    		.addAggregator(AggregatorFactory.createMinAggregator(200, TimeUnit.YEARS));
     	/*int i = 0;
     	for (String station : stationResponse.getResults()) {
     		if (i <= Integer.parseInt(args[0])) {
