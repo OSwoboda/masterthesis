@@ -35,8 +35,8 @@ public class Main {
     		i++;
     	}
     	System.out.println("Stations :"+i);
-    	System.out.println(builder.toString());
     	QueryResponse qResponse = client.query(builder);
+    	System.out.println(qResponse.getBody());
     	int sampleSize = 0;
     	for (Queries queries : qResponse.getQueries()) {
     		sampleSize += queries.getSampleSize();
