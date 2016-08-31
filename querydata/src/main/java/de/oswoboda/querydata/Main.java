@@ -36,6 +36,9 @@ public class Main {
     	}
     	System.out.println("Stations :"+i);
     	QueryResponse qResponse = client.query(builder);
+    	if (qResponse.getStatusCode() != 204) {
+    		System.out.println(qResponse.getBody());
+    	}
     	int sampleSize = 0;
     	for (Queries queries : qResponse.getQueries()) {
     		sampleSize += queries.getSampleSize();
