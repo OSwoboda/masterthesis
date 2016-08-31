@@ -36,7 +36,10 @@ public class Main {
     	}
     	System.out.println("Stations :"+i);
     	QueryResponse qResponse = client.query(builder);
-    	if (qResponse.getStatusCode() != 204) {
+    	long endTime = System.currentTimeMillis();
+    	System.out.println("End: "+System.currentTimeMillis());
+    	System.out.println("Duration: "+(endTime-startTime));
+    	if (qResponse.getStatusCode() != 200) {
     		System.out.println(qResponse.getBody());
     	}
     	int sampleSize = 0;
@@ -45,8 +48,5 @@ public class Main {
     	}
     	System.out.println("sampleSize: "+sampleSize);
     	client.shutdown();
-    	long endTime = System.currentTimeMillis();
-    	System.out.println("End: "+System.currentTimeMillis());
-    	System.out.println("Duration: "+(endTime-startTime));
     }
 }
