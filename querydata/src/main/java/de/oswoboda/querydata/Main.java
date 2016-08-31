@@ -28,7 +28,7 @@ public class Main {
     		.addMetric("TMIN");
     	int i = 0;
     	for (String station : stationResponse.getResults()) {
-    		if (i <= 100) {
+    		if (i <= Integer.parseInt(args[0])) {
     			metric.addTag("station", station);
     		}
     		i++;
