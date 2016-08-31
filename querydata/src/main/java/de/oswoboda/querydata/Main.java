@@ -26,7 +26,7 @@ public class Main {
     	QueryBuilder builder = QueryBuilder.getInstance();
     	QueryMetric metric = builder.setStart(start)
     		.setEnd(end)
-    		.addMetric("TMIN");
+    		.addMetric(args[1]);
     	int i = 0;
     	for (String station : stationResponse.getResults()) {
     		if (i <= Integer.parseInt(args[0])) {
