@@ -4,8 +4,10 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.kairosdb.client.HttpClient;
+import org.kairosdb.client.builder.AggregatorFactory;
 import org.kairosdb.client.builder.QueryBuilder;
 import org.kairosdb.client.builder.QueryMetric;
+import org.kairosdb.client.builder.TimeUnit;
 import org.kairosdb.client.response.GetResponse;
 import org.kairosdb.client.response.Queries;
 import org.kairosdb.client.response.QueryResponse;
@@ -29,11 +31,12 @@ public class Main {
     		.addMetric(args[0]);
     	int i = 0;
     	for (String station : stationResponse.getResults()) {
-    		if (i <= 10000) {
+    		if (i <= 15000) {
     			metric.addTag("station", station);
     		}
     		i++;
     	}
+    	metric.addAggregator(AggregatorFactory.createMinAggregator(15, TimeUnit.YEARS));
     	QueryResponse qResponse = client.query(builder);
     	long endTime = System.currentTimeMillis();
     	System.out.println("End: "+System.currentTimeMillis());
