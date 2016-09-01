@@ -9,7 +9,6 @@ import org.kairosdb.client.builder.DataPoint;
 import org.kairosdb.client.builder.QueryBuilder;
 import org.kairosdb.client.builder.QueryMetric;
 import org.kairosdb.client.builder.TimeUnit;
-import org.kairosdb.client.response.GetResponse;
 import org.kairosdb.client.response.Queries;
 import org.kairosdb.client.response.QueryResponse;
 import org.kairosdb.client.response.Results;
@@ -19,10 +18,9 @@ public class Main {
     	long startTime = System.currentTimeMillis();
     	System.out.println("Start: "+startTime);
     	HttpClient client = new HttpClient("http://"+args[0]+":25025");
-    	GetResponse stationResponse = client.getTagValues();
     	
     	Calendar calendar = Calendar.getInstance();
-    	calendar.set(1950, 0, 1);
+    	calendar.set(1900, 0, 1);
     	Date start = calendar.getTime();
     	calendar.set(2017, 0, 1);
     	Date end = calendar.getTime();
@@ -31,13 +29,6 @@ public class Main {
     	QueryMetric metric = builder.setStart(start)
     		.setEnd(end)
     		.addMetric(args[1]);
-    	int i = 0;
-    	for (String station : stationResponse.getResults()) {
-    		if (i <= Integer.parseInt(args[2])) {
-    			metric.addTag("station", station);
-    		}
-    		i++;
-    	}
     	metric.addAggregator(AggregatorFactory.createMinAggregator(200, TimeUnit.YEARS));
     	QueryResponse qResponse = client.query(builder);
     	long queryTime = System.currentTimeMillis();
