@@ -20,9 +20,9 @@ public class Main {
     	HttpClient client = new HttpClient("http://"+args[0]+":25025");
     	
     	Calendar calendar = Calendar.getInstance();
-    	calendar.set(Integer.parseInt(args[2]), 0, 1);
+    	calendar.set(Integer.parseInt(args[2]), Integer.parseInt(args[3])-1, 1);
     	Date start = calendar.getTime();
-    	calendar.set(Integer.parseInt(args[3]), 0, 1);
+    	calendar.set(Integer.parseInt(args[4]), Integer.parseInt(args[5])-1, 1);
     	Date end = calendar.getTime();
     	
     	QueryBuilder builder = QueryBuilder.getInstance();
