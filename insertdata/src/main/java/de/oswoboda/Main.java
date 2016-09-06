@@ -81,7 +81,7 @@ public class Main {
 		
 		if (accumulo) {
 			
-			String tableName = params.get("table", "month");
+			final String tableName = params.get("table", "month");
 			String instanceName = params.get("instance", "hdp-accumulo-instance");
 			String zooServers = params.get("zoo", "sandbox:2181");
 			String user = params.get("u", "root");
