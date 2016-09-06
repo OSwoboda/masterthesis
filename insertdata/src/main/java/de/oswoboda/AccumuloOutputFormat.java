@@ -33,9 +33,9 @@ public class AccumuloOutputFormat implements OutputFormat<Mutation> {
 
 	@Override
 	public void configure(Configuration arg0) {
-		Instance inst = new ZooKeeperInstance("hdp-accumulo-instance", "sandbox.hortonworks.com:2181");
+		Instance inst = new ZooKeeperInstance("hdp-accumulo-instance", "sandbox:2181");
 		try {
-			conn = inst.getConnector("accumulo", new PasswordToken("P@ssw0rd"));
+			conn = inst.getConnector("root", new PasswordToken("P@ssw0rd"));
 		} catch (AccumuloException | AccumuloSecurityException e) {
 			e.printStackTrace();
 		}
