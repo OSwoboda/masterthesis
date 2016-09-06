@@ -2,6 +2,7 @@ package de.oswoboda;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.accumulo.core.data.Mutation;
@@ -79,23 +80,33 @@ public class Main {
 		}
 		
 		if (accumulo) {
+			
+			String tableName = params.get("table", "month");
+			String instanceName = params.get("instance", "hdp-accumulo-instance");
+			String zooServers = params.get("zoo", "sandbox:2181");
+			String user = params.get("u", "root");
+			String passwd = params.get("p", "P@ssw0rd");
+			
 			DataSet<Mutation> mutations = csvInput.groupBy(0).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, Mutation>() {
 				
 				private static final long serialVersionUID = 1L;
 				private DateFormat readFormat = new SimpleDateFormat("yyyyMMdd");
-				private DateFormat rowFormat = new SimpleDateFormat("yyyyMM");
+				private DateFormat rowMonthFormat = new SimpleDateFormat("yyyyMM");
+				private DateFormat rowYearFormat = new SimpleDateFormat("yyyy");
 				private DateFormat timestampFormat = new SimpleDateFormat("dd");
 				
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Mutation> out) throws Exception {
+					String format = params.get("format", "month");
+					DateFormat rowFormat = (format.equals("month")) ? rowMonthFormat : rowYearFormat;
 					Mutation mutation = null;
-					String lastMonth = null;
+					String last = null;
 					for (Tuple4<String, String, String, Long> data : in) {
 						Date date = readFormat.parse(data.f1);
-						String month = rowFormat.format(date);
-						if (mutation == null || !lastMonth.equals(month)) {
-							lastMonth = month;
-							Text rowID = new Text(month+"_"+data.f0);
+						String current = rowFormat.format(date);
+						if (mutation == null || !last.equals(current)) {
+							last = current;
+							Text rowID = new Text(current+"_"+data.f0);
 							mutation = new Mutation(rowID);
 						}
 						
@@ -103,6 +114,11 @@ public class Main {
 						Text colQual = new Text(data.f2);
 						ColumnVisibility colVis = new ColumnVisibility("public");
 						long timestamp = Long.parseLong(timestampFormat.format(date));
+						if (format.equals("month")) {
+							Calendar calendar = Calendar.getInstance();
+							calendar.setTime(date);
+							timestamp = calendar.get(Calendar.DAY_OF_YEAR);
+						}
 						
 						Value value = new Value(Longs.toByteArray(data.f3));						
 						
@@ -113,7 +129,7 @@ public class Main {
 				
 			});
 			
-			mutations.output(new AccumuloOutputFormat());
+			mutations.output(new AccumuloOutputFormat(tableName, instanceName, zooServers, user, passwd));
 		}
 		
 		env.execute("Insert Data");
