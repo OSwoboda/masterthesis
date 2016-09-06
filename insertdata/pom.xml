@@ -90,6 +90,11 @@ under the License.
 			<artifactId>client</artifactId>
 			<version>2.1.0</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.apache.accumulo</groupId>
+		    <artifactId>accumulo-maven-plugin</artifactId>
+		    <version>1.7.0</version>
+		</dependency>
 	</dependencies>
 
 	<profiles>
