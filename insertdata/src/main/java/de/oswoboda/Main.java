@@ -97,8 +97,7 @@ public class Main {
 				
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Mutation> out) throws Exception {
-					String format = params.get("format", "month");
-					DateFormat rowFormat = (format.equals("month")) ? rowMonthFormat : rowYearFormat;
+					DateFormat rowFormat = (tableName.equals("month")) ? rowMonthFormat : rowYearFormat;
 					Mutation mutation = null;
 					String last = null;
 					for (Tuple4<String, String, String, Long> data : in) {
@@ -114,7 +113,7 @@ public class Main {
 						Text colQual = new Text(data.f2);
 						ColumnVisibility colVis = new ColumnVisibility("public");
 						long timestamp = Long.parseLong(timestampFormat.format(date));
-						if (format.equals("month")) {
+						if (tableName.equals("month")) {
 							Calendar calendar = Calendar.getInstance();
 							calendar.setTime(date);
 							timestamp = calendar.get(Calendar.DAY_OF_YEAR);
