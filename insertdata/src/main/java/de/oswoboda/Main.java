@@ -81,7 +81,7 @@ public class Main {
 		
 		if (accumulo) {
 			
-			final String tableName = params.get("table", "month");
+			final String tableName = params.get("table", "bymonth");
 			String instanceName = params.get("instance", "hdp-accumulo-instance");
 			String zooServers = params.get("zoo", "sandbox:2181");
 			String user = params.get("u", "root");
@@ -97,13 +97,16 @@ public class Main {
 				
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Mutation> out) throws Exception {
-					DateFormat rowFormat = (tableName.equals("month")) ? rowMonthFormat : rowYearFormat;
+					DateFormat rowFormat = (tableName.equals("bymonth")) ? rowMonthFormat : rowYearFormat;
 					Mutation mutation = null;
 					String last = null;
 					for (Tuple4<String, String, String, Long> data : in) {
 						Date date = readFormat.parse(data.f1);
 						String current = rowFormat.format(date);
 						if (mutation == null || !last.equals(current)) {
+							if (mutation != null) {
+								out.collect(mutation);
+							}
 							last = current;
 							Text rowID = new Text(current+"_"+data.f0);
 							mutation = new Mutation(rowID);
@@ -111,9 +114,9 @@ public class Main {
 						
 						Text colFam = new Text("data_points");
 						Text colQual = new Text(data.f2);
-						ColumnVisibility colVis = new ColumnVisibility("public");
+						ColumnVisibility colVis = new ColumnVisibility("standard");
 						long timestamp = Long.parseLong(timestampFormat.format(date));
-						if (tableName.equals("month")) {
+						if (tableName.equals("bymonth")) {
 							Calendar calendar = Calendar.getInstance();
 							calendar.setTime(date);
 							timestamp = calendar.get(Calendar.DAY_OF_YEAR);
