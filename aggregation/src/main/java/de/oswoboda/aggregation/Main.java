@@ -70,9 +70,13 @@ public class Main {
 			Class<? extends Aggregator> aggClass = Aggregator.getAggregator(aggregation);
 			is.addOption("aggregation", aggClass.getName());
 			
-			bscan.addScanIterator(is);
+			//bscan.addScanIterator(is);
+			
+			for(Entry<Key,Value> entry : bscan) {
+				System.out.println(entry.getValue());
+			}
 	
-			List<Aggregator> resultAggregators = new ArrayList<>();
+			/*List<Aggregator> resultAggregators = new ArrayList<>();
 			for(Entry<Key,Value> entry : bscan) {
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
 				System.out.println(resultAggregator.getCount());
@@ -84,7 +88,7 @@ public class Main {
 			for (Aggregator resultAggregator : resultAggregators) {
 				aggregator.merge(resultAggregator.getValue(), resultAggregator.getCount());
 			}
-			System.out.println(aggregator.getResult());
+			System.out.println(aggregator.getResult());*/
 		} finally {
 			bscan.close();
 		}
