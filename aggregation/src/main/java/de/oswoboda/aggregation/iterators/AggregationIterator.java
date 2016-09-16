@@ -44,8 +44,10 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
+		System.out.println("hasTop");
 		while (super.hasTop()) {
 			last = super.getTopKey();
+			System.out.println(last.getRow());
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
@@ -64,11 +66,13 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public Key getTopKey() {
+		System.out.println("getTopKey");
         return last;
     }
 	
 	@Override
     public Value getTopValue() {
+		System.out.println("getTopValue");
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(aggregator);
@@ -81,10 +85,12 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public void next() throws IOException {
+		System.out.println("next");
         last = null;
     }
 	
     public static Aggregator decodeValue(Value value) throws IOException, ClassNotFoundException {
+    	System.out.println("decodeValue");
         ByteArrayInputStream bis = new ByteArrayInputStream(value.get());
         ObjectInputStream ois = new ObjectInputStream(bis);
         return (Aggregator) ois.readObject();
