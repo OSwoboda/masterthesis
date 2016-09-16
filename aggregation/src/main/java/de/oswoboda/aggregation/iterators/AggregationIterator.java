@@ -44,16 +44,16 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
+		aggregator.add(2.);
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
-				aggregator.add(metric.getValue());
-				/*if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
+				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
 						aggregator.add(metric.getValue());
 					}
-				}*/
+				}
 				super.next();
 			} catch (Exception e) {
 				e.printStackTrace();
