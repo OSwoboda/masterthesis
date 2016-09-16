@@ -12,6 +12,7 @@ public class Min extends Aggregator {
 	@Override
 	public void add(double update) {
 		if (value == null || update < value) {
+			++count;
 			value = update;
 		}
 	}
