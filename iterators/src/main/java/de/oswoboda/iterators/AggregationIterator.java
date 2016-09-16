@@ -16,7 +16,7 @@ import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
 
-import de.oswoboda.aggregators.Aggregator;
+import de.oswoboda.aggregators.*;
 
 public class AggregationIterator extends WrappingIterator
 {
@@ -47,7 +47,6 @@ public class AggregationIterator extends WrappingIterator
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
-				System.out.println(metric.getValue());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
 						aggregator.add(metric.getValue());
