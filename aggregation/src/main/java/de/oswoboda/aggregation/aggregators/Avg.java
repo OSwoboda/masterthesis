@@ -2,6 +2,8 @@ package de.oswoboda.aggregation.aggregators;
 
 public class Avg extends Aggregator {
 	
+	private static final long serialVersionUID = 1L;
+
 	public Avg() {
 		count = 0;
 		value = 0.;

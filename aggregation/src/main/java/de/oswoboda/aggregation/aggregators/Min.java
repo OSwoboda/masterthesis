@@ -2,6 +2,8 @@ package de.oswoboda.aggregation.aggregators;
 
 public class Min extends Aggregator {
 	
+	private static final long serialVersionUID = 1L;
+
 	public Min() {
 		value = null;
 	}
