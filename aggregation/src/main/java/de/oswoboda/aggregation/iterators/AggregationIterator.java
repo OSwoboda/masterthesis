@@ -37,6 +37,7 @@ public class AggregationIterator extends WrappingIterator
         String aggregation = options.get("aggregation");
         try {
 			aggregator = (Aggregator) Class.forName(aggregation).newInstance();
+			aggregator.add(2.);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -44,7 +45,6 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-		aggregator.add(2.);
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
