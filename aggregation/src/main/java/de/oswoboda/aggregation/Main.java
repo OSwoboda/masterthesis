@@ -76,7 +76,7 @@ public class Main {
 			for(Entry<Key,Value> entry : bscan) {
 			    resultAggregators.add(AggregationIterator.decodeValue(entry.getValue()));
 			}
-			Aggregator aggregator = (Aggregator) Class.forName(aggregation).newInstance();
+			Aggregator aggregator = aggClass.newInstance();
 			for (Aggregator resultAggregator : resultAggregators) {
 				aggregator.merge(resultAggregator.getValue(), resultAggregator.getCount());
 			}
