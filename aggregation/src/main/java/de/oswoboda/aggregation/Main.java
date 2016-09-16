@@ -32,7 +32,7 @@ public class Main {
 		String start = "20140101";
 		String end = "20150101";
 		boolean bymonth = true;
-		String aggregation = "Min";
+		String aggregation = "min";
 		
 		TreeSet<String> stations = new TreeSet<>();
 		stations.add("GME00102292"); // Leipzig-Schkeuditz

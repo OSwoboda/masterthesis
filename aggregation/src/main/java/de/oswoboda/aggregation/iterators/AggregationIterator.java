@@ -53,6 +53,7 @@ public class AggregationIterator extends WrappingIterator
 						aggregator.add(metric.getValue());
 					}
 				}
+				System.out.println(aggregator.getValue());
 				super.next();
 			} catch (Exception e) {
 				e.printStackTrace();
