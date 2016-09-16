@@ -1,4 +1,4 @@
-package de.oswoboda.iterators;
+package de.oswoboda.aggregation;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;

@@ -1,4 +1,4 @@
-package de.oswoboda.iterators;
+package de.oswoboda.aggregation.iterators;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,7 +16,8 @@ import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
 
-import de.oswoboda.aggregators.*;
+import de.oswoboda.aggregation.Metric;
+import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
 {

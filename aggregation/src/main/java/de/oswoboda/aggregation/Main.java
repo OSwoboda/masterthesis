@@ -1,4 +1,4 @@
-package de.oswoboda.iterators;
+package de.oswoboda.aggregation;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +21,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
 
-import de.oswoboda.aggregators.Aggregator;
+import de.oswoboda.aggregation.aggregators.Aggregator;
+import de.oswoboda.aggregation.iterators.AggregationIterator;
 
 public class Main {
 	
@@ -66,7 +67,8 @@ public class Main {
 			is.addOption("stations", StringUtils.join(stations, ","));
 			is.addOption("start", String.valueOf(startDate.getTime()));
 			is.addOption("end", String.valueOf(endDate.getTime()));
-			is.addOption("aggregation", aggregation);
+			Class<? extends Aggregator> aggClass = Aggregator.getAggregator(aggregation);
+			is.addOption("aggregation", aggClass.getName());
 			
 			bscan.addScanIterator(is);
 	

@@ -1,4 +1,4 @@
-package de.oswoboda.aggregators;
+package de.oswoboda.aggregation.aggregators;
 
 public class Max extends Aggregator {
 	
