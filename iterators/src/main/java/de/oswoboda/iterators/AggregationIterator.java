@@ -47,6 +47,7 @@ public class AggregationIterator extends WrappingIterator
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
+				System.out.println(metric.getValue());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
 						aggregator.add(metric.getValue());
