@@ -22,7 +22,7 @@ import de.oswoboda.aggregation.aggregators.Aggregator;
 public class AggregationIterator extends WrappingIterator
 {	
 	private Set<String> queryStations = new HashSet<>();
-	private transient Aggregator aggregator;
+	private Aggregator aggregator;
 	private long start;
 	private long end;
 	
@@ -37,7 +37,7 @@ public class AggregationIterator extends WrappingIterator
         String aggregation = options.get("aggregation");
         try {
 			aggregator = (Aggregator) Class.forName(aggregation).newInstance();
-			aggregator.add(2.);
+			aggregator.add(2.0);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
