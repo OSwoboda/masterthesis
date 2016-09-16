@@ -74,6 +74,7 @@ public class Main {
 	
 			List<Aggregator> resultAggregators = new ArrayList<>();
 			for(Entry<Key,Value> entry : bscan) {
+				System.out.println("Bla");
 			    resultAggregators.add(AggregationIterator.decodeValue(entry.getValue()));
 			}
 			Aggregator aggregator = aggClass.newInstance();
