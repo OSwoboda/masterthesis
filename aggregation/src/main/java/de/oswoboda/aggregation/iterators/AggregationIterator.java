@@ -15,12 +15,16 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
+import org.apache.log4j.Logger;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
+import jline.internal.Log;
 
 public class AggregationIterator extends WrappingIterator
 {	
+	private static final Logger LOG = Logger.getLogger(AggregationIterator.class);
+	
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
 	private long start;
@@ -31,6 +35,8 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
+        LOG.debug("testtest");
+        Log.debug("testestest");
         queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
@@ -45,6 +51,8 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
+        LOG.debug("testtest");
+        Log.debug("testestest");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
