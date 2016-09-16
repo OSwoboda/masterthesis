@@ -6,6 +6,7 @@ public class Min extends Aggregator {
 
 	public Min() {
 		value = null;
+		count = 0;
 	}
 	
 	@Override
