@@ -15,15 +15,12 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.apache.log4j.Logger;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
-{
-	private static final Logger log = Logger.getLogger(AggregationIterator.class);
-	
+{	
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
 	private long start;
@@ -33,8 +30,6 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
-		System.out.println("init");
-		log.trace("info: init");
         super.init(source, options, env);
         queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
         start = Long.parseLong(options.get("start"));
@@ -49,7 +44,6 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-		System.out.println("hasTop");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			System.out.println(last.getRow());
@@ -71,13 +65,11 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public Key getTopKey() {
-		System.out.println("getTopKey");
         return last;
     }
 	
 	@Override
     public Value getTopValue() {
-		System.out.println("getTopValue");
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(aggregator);
@@ -90,12 +82,10 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public void next() throws IOException {
-		System.out.println("next");
         last = null;
     }
 	
     public static Aggregator decodeValue(Value value) throws IOException, ClassNotFoundException {
-    	System.out.println("decodeValue");
         ByteArrayInputStream bis = new ByteArrayInputStream(value.get());
         ObjectInputStream ois = new ObjectInputStream(bis);
         return (Aggregator) ois.readObject();
