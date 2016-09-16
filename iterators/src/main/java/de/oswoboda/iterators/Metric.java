@@ -1,5 +1,6 @@
 package de.oswoboda.iterators;
 
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.Calendar;
 
@@ -31,7 +32,7 @@ public class Metric {
 		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
 		calendar.add((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
 		long timestamp = calendar.getTimeInMillis();
-		double doubleValue = Double.parseDouble(value.toString());
+		double doubleValue = ByteBuffer.wrap(value.get()).getDouble();
 		String metricName = key.getColumnQualifier().toString();
 		
 		return new Metric(metricName, timestamp, station, doubleValue, isMonthFormat);
