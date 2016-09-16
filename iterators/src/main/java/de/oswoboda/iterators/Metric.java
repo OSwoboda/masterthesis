@@ -2,25 +2,22 @@ package de.oswoboda.iterators;
 
 import java.text.ParseException;
 import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
 public class Metric {
 	
-	private Set<String> stations = new HashSet<>();
+	private String station;
 	private String metricName;
-	private Date timestamp;
+	private long timestamp;
 	private double value;
 	private boolean isMonthFormat = true;
 	
-	public Metric(String metricName, Date timestamp, Set<String> stations, double value, boolean isMonthFormat) {
+	public Metric(String metricName, long timestamp, String station, double value, boolean isMonthFormat) {
 		this.metricName = metricName;
 		this.timestamp = timestamp;
-		this.stations = stations;
+		this.station = station;
 		this.value = value;
 		this.isMonthFormat = isMonthFormat;
 	}
@@ -29,28 +26,23 @@ public class Metric {
 		String rowKey = key.getRow().toString();
 		String[] split = rowKey.split("_");
 		boolean isMonthFormat = (split[0].length() == 6) ? true : false;
-		Set<String> stations = new HashSet<>();
-		stations.add(split[1]);
+		String station = split[1];
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
 		calendar.add((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
-		Date timestamp = calendar.getTime();
+		long timestamp = calendar.getTimeInMillis();
 		double doubleValue = Double.parseDouble(value.toString());
 		String metricName = key.getColumnQualifier().toString();
 		
-		return new Metric(metricName, timestamp, stations, doubleValue, isMonthFormat);
+		return new Metric(metricName, timestamp, station, doubleValue, isMonthFormat);
 	}
 
-	public Set<String> getStations() {
-		return stations;
+	public String getStation() {
+		return station;
 	}
 
-	public void setStations(Set<String> stations) {
-		this.stations = stations;
-	}
-	
-	public void addStation(String station) {
-		stations.add(station);
+	public void setStation(String station) {
+		this.station = station;
 	}
 
 	public String getMetricName() {
@@ -61,11 +53,11 @@ public class Metric {
 		this.metricName = metricName;
 	}
 
-	public Date getTimestamp() {
+	public long getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(Date timestamp) {
+	public void setTimestamp(long timestamp) {
 		this.timestamp = timestamp;
 	}
 

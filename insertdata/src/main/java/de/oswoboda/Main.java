@@ -44,7 +44,7 @@ public class Main {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		final ParameterTool params = ParameterTool.fromArgs(args);
 		
-		String inputPath = params.get("input", "hdfs:///user/oSwoboda/dataset/0101.csv");
+		String inputPath = params.get("input", "file:///root/masterthesis/0101.csv");
 		Boolean kairosdb = params.getBoolean("kairosdb", false);
 		Boolean accumulo = params.getBoolean("accumulo", false);
 
@@ -81,7 +81,7 @@ public class Main {
 		
 		if (accumulo) {
 			
-			final String tableName = params.get("table", "bymonth");
+			final String tableName = params.get("table", "oswoboda.bymonth");
 			String instanceName = params.get("instance", "hdp-accumulo-instance");
 			String zooServers = params.get("zoo", "sandbox:2181");
 			String user = params.get("u", "root");
@@ -97,7 +97,7 @@ public class Main {
 				
 				@Override
 				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Mutation> out) throws Exception {
-					DateFormat rowFormat = (tableName.equals("bymonth")) ? rowMonthFormat : rowYearFormat;
+					DateFormat rowFormat = (tableName.equals("oswoboda.bymonth")) ? rowMonthFormat : rowYearFormat;
 					Mutation mutation = null;
 					String last = null;
 					for (Tuple4<String, String, String, Long> data : in) {
@@ -116,7 +116,7 @@ public class Main {
 						Text colQual = new Text(data.f2);
 						ColumnVisibility colVis = new ColumnVisibility("standard");
 						long timestamp = Long.parseLong(timestampFormat.format(date));
-						if (tableName.equals("bymonth")) {
+						if (tableName.equals("oswoboda.bymonth")) {
 							Calendar calendar = Calendar.getInstance();
 							calendar.setTime(date);
 							timestamp = calendar.get(Calendar.DAY_OF_YEAR);
