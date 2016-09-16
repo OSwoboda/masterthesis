@@ -1,8 +1,6 @@
 package de.oswoboda.aggregation.aggregators;
 
-import java.io.Serializable;
-
-public abstract class Aggregator implements Serializable {
+public abstract class Aggregator {
 
 	private static final long serialVersionUID = 1L;
 	
