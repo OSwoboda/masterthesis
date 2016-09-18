@@ -29,10 +29,10 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		String metricName = "TMIN";
 		String tableName = "oswoboda.bymonth";
-		String start = "20140101";
-		String end = "20150101";
+		String start = "19000101";
+		String end = "20170101";
 		boolean bymonth = true;
-		String aggregation = "min";
+		String aggregation = "avg";
 		
 		TreeSet<String> stations = new TreeSet<>();
 		stations.add("GME00102292"); // Leipzig-Schkeuditz
