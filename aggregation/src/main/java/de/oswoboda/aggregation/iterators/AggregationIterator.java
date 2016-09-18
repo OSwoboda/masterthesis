@@ -36,6 +36,7 @@ public class AggregationIterator extends WrappingIterator
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
         LOG.error("testtest");
+        System.out.println("test");
         queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
@@ -51,6 +52,7 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public boolean hasTop() {
         LOG.error("testtest");
+        System.out.println("test");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
