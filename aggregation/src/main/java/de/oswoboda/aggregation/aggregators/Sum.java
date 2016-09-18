@@ -5,11 +5,11 @@ public class Sum extends Aggregator {
 	private static final long serialVersionUID = 1L;
 
 	public Sum() {
-		value = 0.;
+		value = 0L;
 	}
 	
 	@Override
-	public void add(double update) {
+	public void add(long update) {
 		value += update;
 	}
 

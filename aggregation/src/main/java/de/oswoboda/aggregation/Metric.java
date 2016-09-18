@@ -6,20 +6,16 @@ import java.util.Calendar;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Metric {
-	
-	private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
 	
 	private String station;
 	private String metricName;
 	private long timestamp;
-	private double value;
+	private long value;
 	private boolean isMonthFormat = true;
 	
-	public Metric(String metricName, long timestamp, String station, double value, boolean isMonthFormat) {
+	public Metric(String metricName, long timestamp, String station, long value, boolean isMonthFormat) {
 		this.metricName = metricName;
 		this.timestamp = timestamp;
 		this.station = station;
@@ -36,12 +32,10 @@ public class Metric {
 		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
 		calendar.add((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
 		long timestamp = calendar.getTimeInMillis();
-		LOG.error("Long: "+ByteBuffer.wrap(value.get()).getLong());
-		LOG.error("Double: "+ByteBuffer.wrap(value.get()).getDouble());
-		double doubleValue = ByteBuffer.wrap(value.get()).getLong();
+		long longValue = ByteBuffer.wrap(value.get()).getLong();
 		String metricName = key.getColumnQualifier().toString();
 		
-		return new Metric(metricName, timestamp, station, doubleValue, isMonthFormat);
+		return new Metric(metricName, timestamp, station, longValue, isMonthFormat);
 	}
 
 	public String getStation() {
@@ -68,11 +62,11 @@ public class Metric {
 		this.timestamp = timestamp;
 	}
 
-	public double getValue() {
+	public long getValue() {
 		return value;
 	}
 
-	public void setValue(double value) {
+	public void setValue(long value) {
 		this.value = value;
 	}
 

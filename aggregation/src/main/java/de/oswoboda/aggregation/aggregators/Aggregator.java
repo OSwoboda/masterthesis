@@ -7,15 +7,15 @@ public abstract class Aggregator implements Serializable {
 	private static final long serialVersionUID = 1L;
 	
 	protected int count;
-	protected Double value;
+	protected Long value;
 	
-	public abstract void add(double update);
+	public abstract void add(long update);
 	
-	public Double getResult() {
+	public double getResult() {
 		return value;
 	}
 	
-	public void merge(double update, int count) {
+	public void merge(long update, int count) {
 		add(update);
 	}
 	
@@ -23,7 +23,7 @@ public abstract class Aggregator implements Serializable {
 		return count;
 	}
 	
-	public Double getValue() {
+	public long getValue() {
 		return value;
 	}
 	

@@ -6,23 +6,23 @@ public class Avg extends Aggregator {
 
 	public Avg() {
 		count = 0;
-		value = 0.;
+		value = 0L;
 	}
 	
 	@Override
-	public void add(double update) {
+	public void add(long update) {
 		value += update;
 		++count;
 	}
 	
 	@Override
-	public void merge(double update, int count) {
+	public void merge(long update, int count) {
 		value += update;
 		this.count += count;
 	}
 	
 	@Override
-	public Double getResult() {
+	public double getResult() {
 		return value/count;
 	}
 

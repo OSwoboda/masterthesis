@@ -9,7 +9,7 @@ public class Max extends Aggregator {
 	}
 	
 	@Override
-	public void add(double update) {
+	public void add(long update) {
 		if (value == null || update > value) {
 			value = update;
 		}
