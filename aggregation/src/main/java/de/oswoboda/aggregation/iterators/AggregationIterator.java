@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
-import jline.internal.Log;
 
 public class AggregationIterator extends WrappingIterator
 {	
@@ -36,7 +35,8 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
-        Log.debug("init");
+        LOG.error("init");
+        LOG.trace("tracetest");
         queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
@@ -50,17 +50,17 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-        LOG.debug("hasTop");
+        LOG.error("hasTop");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
-				LOG.debug("geparst: "+metric.getStation()+" - "+queryStations.contains(metric.getStation()));
+				LOG.error("geparst: "+metric.getStation()+" - "+queryStations.contains(metric.getStation()));
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
-					Log.debug("station found");
+					LOG.error("station found");
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
-						Log.debug("time found");
-						Log.debug("addValue: "+metric.getValue());
+						LOG.error("time found");
+						LOG.error("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
 					}
 				}
@@ -74,13 +74,13 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public Key getTopKey() {
-		LOG.debug("getTopKey");
+		LOG.error("getTopKey");
         return last;
     }
 	
 	@Override
     public Value getTopValue() {
-		LOG.debug("getTopValue");
+		LOG.error("getTopValue");
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(aggregator);
@@ -93,7 +93,7 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public void next() throws IOException {
-		LOG.debug("next");
+		LOG.error("next");
         last = null;
     }
 	
