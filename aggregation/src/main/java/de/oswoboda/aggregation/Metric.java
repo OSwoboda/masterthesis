@@ -6,8 +6,12 @@ import java.util.Calendar;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Metric {
+	
+	private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
 	
 	private String station;
 	private String metricName;
@@ -32,7 +36,9 @@ public class Metric {
 		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
 		calendar.add((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
 		long timestamp = calendar.getTimeInMillis();
-		double doubleValue = ByteBuffer.wrap(value.get()).getDouble();
+		LOG.error("Long: "+ByteBuffer.wrap(value.get()).getLong());
+		LOG.error("Double: "+ByteBuffer.wrap(value.get()).getDouble());
+		double doubleValue = ByteBuffer.wrap(value.get()).getLong();
 		String metricName = key.getColumnQualifier().toString();
 		
 		return new Metric(metricName, timestamp, station, doubleValue, isMonthFormat);

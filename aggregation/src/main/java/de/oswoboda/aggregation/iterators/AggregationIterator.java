@@ -53,10 +53,7 @@ public class AggregationIterator extends WrappingIterator
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
-					LOG.error("start: "+start+" to end: "+end);
-					LOG.error("MetricTimestamp: "+metric.getTimestamp());
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
-						LOG.error("time found");
 						LOG.error("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
 					}
