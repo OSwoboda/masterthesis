@@ -6,12 +6,10 @@ public class Min extends Aggregator {
 
 	public Min() {
 		value = null;
-		count = 2;
 	}
 	
 	@Override
 	public void add(double update) {
-		++count;
 		if (value == null || update < value) {
 			value = update;
 		}
