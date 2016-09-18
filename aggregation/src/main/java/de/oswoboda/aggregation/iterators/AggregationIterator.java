@@ -35,8 +35,6 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
-        LOG.error("init");
-        LOG.trace("tracetest");
         queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
@@ -50,14 +48,13 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-        LOG.error("hasTop");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
-				LOG.error("geparst: "+metric.getStation()+" - "+queryStations.contains(metric.getStation()));
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
-					LOG.error("station found");
+					LOG.error("start: "+start+" to end: "+end);
+					LOG.error("MetricTimestamp: "+metric.getTimestamp());
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
 						LOG.error("time found");
 						LOG.error("addValue: "+metric.getValue());
@@ -74,13 +71,11 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public Key getTopKey() {
-		LOG.error("getTopKey");
         return last;
     }
 	
 	@Override
     public Value getTopValue() {
-		LOG.error("getTopValue");
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 ObjectOutputStream out = new ObjectOutputStream(bos)) {
             out.writeObject(aggregator);
@@ -93,7 +88,6 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public void next() throws IOException {
-		LOG.error("next");
         last = null;
     }
 	
