@@ -2,17 +2,27 @@ package de.oswoboda.aggregation.aggregators;
 
 import java.lang.invoke.MethodHandles;
 
-public class Sum extends Aggregator {
+public class Count extends Aggregator {
 	
 	private static final long serialVersionUID = 1L;
 
-	public Sum() {
-		value = 0L;
+	public Count() {
+		count = 0;
+	}
+
+	@Override
+	public void add(long update) {
+		++count;
 	}
 	
 	@Override
-	public void add(long update) {
-		value += update;
+	public void merge(Aggregator aggregator) {
+		count += aggregator.getCount();
+	}
+	
+	@Override
+	public double getResult() {
+		return count;
 	}
 	
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {

@@ -28,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
 
 import de.oswoboda.aggregation.aggregators.Aggregator;
+import de.oswoboda.aggregation.aggregators.Dev;
 import de.oswoboda.aggregation.iterators.AggregationIterator;
 
 public class Main {
@@ -110,12 +111,15 @@ public class Main {
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
 				System.out.println(resultAggregator.getCount());
 				System.out.println(resultAggregator.getValue());
+				if (resultAggregator instanceof Dev) {
+					System.out.println(((Dev)resultAggregator).getSum_x());
+				}
 				System.out.println(resultAggregator.getResult());
 			    resultAggregators.add(resultAggregator);
 			}
 			Aggregator aggregator = aggClass.newInstance();
 			for (Aggregator resultAggregator : resultAggregators) {
-				aggregator.merge(resultAggregator.getValue(), resultAggregator.getCount());
+				aggregator.merge(resultAggregator);
 			}
 			System.out.println(aggregator.getResult());
 		} finally {

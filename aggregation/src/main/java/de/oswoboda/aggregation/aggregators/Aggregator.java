@@ -15,8 +15,8 @@ public abstract class Aggregator implements Serializable {
 		return value;
 	}
 	
-	public void merge(long update, int count) {
-		add(update);
+	public void merge(Aggregator aggregator) {
+		add(aggregator.getValue());
 	}
 	
 	public int getCount() {
@@ -34,11 +34,13 @@ public abstract class Aggregator implements Serializable {
             case "max":
                 return Max.class;
             case "dev":
+            	return Dev.class;
             case "min":
                 return Min.class;
             case "avg":
                 return Avg.class;
             case "count":
+            	return Count.class;
             default:
                 return Min.class;
         }
