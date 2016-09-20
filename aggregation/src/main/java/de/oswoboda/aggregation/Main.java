@@ -1,6 +1,7 @@
 package de.oswoboda.aggregation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,11 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
 
@@ -27,23 +33,50 @@ import de.oswoboda.aggregation.iterators.AggregationIterator;
 public class Main {
 	
 	public static void main(String[] args) throws Exception {
-		String metricName = "TMIN";
-		String tableName = "oswoboda.bymonth";
-		String start = "19000101";
-		String end = "20170101";
-		boolean bymonth = true;
-		String aggregation = "avg";
+		
+		Options options = new Options();
+		options.addOption("metricName", false, "name of the metric, e.g. TMIN");
+		options.addOption("tableName", false, "name of the table, e.g. oswoboda.bymonth");
+		options.addOption("start", false, "start date, e.g. 20100101");
+		options.addOption("end", false, "end date, e.g. 20150101");
+		options.addOption("agg", false, "which aggregation should be used, e.g. min");
+		options.addOption(Option.builder()
+				.longOpt("station")
+				.hasArgs()
+				.argName("stations")
+				.valueSeparator(',')
+				.build());
+		options.addOption("instance", false, "accumulo instance name");
+		options.addOption(Option.builder()
+				.longOpt("zoo")
+				.hasArgs()
+				.argName("zooServers")
+				.valueSeparator(',')
+				.build());
+		options.addOption("u", "user", false, "accumulo user");
+		options.addOption("p", "passwd", false, "accumulo user password");
+		
+		CommandLineParser parser = new DefaultParser();
+		CommandLine cmd = parser.parse(options, args);
+		String metricName = cmd.getOptionValue("metricName", "TMIN");
+		String tableName = cmd.getOptionValue("tableName", "oswoboda.bymonth");
+		String start = cmd.getOptionValue("start", "20100101");
+		String end = cmd.getOptionValue("end", "20150101");
+		boolean bymonth = tableName.contains("bymonth") ? true : false;
+		String aggregation = cmd.getOptionValue("agg", "min");
 		
 		TreeSet<String> stations = new TreeSet<>();
-		stations.add("GME00102292"); // Leipzig-Schkeuditz
+		if (cmd.hasOption("stations")) {
+			stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
+		}
 		
 		Date startDate = TimeFormatUtils.parse(start, TimeFormatUtils.YEAR_MONTH_DAY);
 		Date endDate = TimeFormatUtils.parse(end, TimeFormatUtils.YEAR_MONTH_DAY);
-		String instanceName = "hdp-accumulo-instance";
-		String zooServers = "sandbox:2181";
+		String instanceName = cmd.getOptionValue("instance", "hdp-accumulo-instance");
+		String zooServers = cmd.hasOption("zoo") ?  String.join(",", cmd.getOptionValues("zoo")) : "localhost:2181";
 		Instance inst = new ZooKeeperInstance(instanceName, zooServers);
 
-		Connector conn = inst.getConnector("root", new PasswordToken("P@ssw0rd"));
+		Connector conn = inst.getConnector(cmd.getOptionValue("u", "root"), new PasswordToken(cmd.getOptionValue("p", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 10);
