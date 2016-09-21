@@ -35,7 +35,7 @@ public class Dev extends Aggregator {
 	}
 	
 	@Override
-	public double getResult() {
+	public Double getResult() {
 		return Math.sqrt((value-Math.pow(sum_x, 2)/count)/(count-1));
 	}
 	

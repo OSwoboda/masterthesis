@@ -24,7 +24,7 @@ public class Avg extends Aggregator {
 	}
 	
 	@Override
-	public double getResult() {
+	public Double getResult() {
 		return ((double) value)/count;
 	}
 	

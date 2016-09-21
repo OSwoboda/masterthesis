@@ -11,8 +11,8 @@ public abstract class Aggregator implements Serializable {
 	
 	public abstract void add(long update);
 	
-	public double getResult() {
-		return value;
+	public Double getResult() {
+		return (double)value;
 	}
 	
 	public void merge(Aggregator aggregator) {
