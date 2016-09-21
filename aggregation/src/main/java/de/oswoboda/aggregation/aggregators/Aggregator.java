@@ -16,14 +16,16 @@ public abstract class Aggregator implements Serializable {
 	}
 	
 	public void merge(Aggregator aggregator) {
-		add(aggregator.getValue());
+		if (aggregator.getValue() != null) {
+			add(aggregator.getValue());
+		}
 	}
 	
 	public int getCount() {
 		return count;
 	}
 	
-	public long getValue() {
+	public Long getValue() {
 		return value;
 	}
 	
