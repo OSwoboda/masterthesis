@@ -31,6 +31,6 @@ public class Main {
 		result.print();
 
 		// execute program
-		env.execute("Flink Batch Java API Skeleton");
+		env.execute("Accumulo Flink Aggregation");
 	}
 }
