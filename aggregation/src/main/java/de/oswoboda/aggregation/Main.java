@@ -41,16 +41,16 @@ public class Main {
 		options.addOption("end", true, "end date, e.g. 20150101");
 		options.addOption("agg", true, "which aggregation should be used, e.g. min");
 		options.addOption(Option.builder()
-				.longOpt("station")
+				.longOpt("stations")
 				.hasArgs()
-				.argName("stations")
+				.argName("station")
 				.valueSeparator(',')
 				.build());
 		options.addOption("instance", true, "accumulo instance name");
 		options.addOption(Option.builder()
 				.longOpt("zoo")
 				.hasArgs()
-				.argName("zooServers")
+				.argName("zooServer")
 				.valueSeparator(',')
 				.build());
 		options.addOption("u", "user", true, "accumulo user");
