@@ -36,26 +36,26 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		
 		Options options = new Options();
-		options.addOption("metricName", false, "name of the metric, e.g. TMIN");
-		options.addOption("tableName", false, "name of the table, e.g. oswoboda.bymonth");
-		options.addOption("start", false, "start date, e.g. 20100101");
-		options.addOption("end", false, "end date, e.g. 20150101");
-		options.addOption("agg", false, "which aggregation should be used, e.g. min");
+		options.addOption("metricName", true, "name of the metric, e.g. TMIN");
+		options.addOption("tableName", true, "name of the table, e.g. oswoboda.bymonth");
+		options.addOption("start", true, "start date, e.g. 20100101");
+		options.addOption("end", true, "end date, e.g. 20150101");
+		options.addOption("agg", true, "which aggregation should be used, e.g. min");
 		options.addOption(Option.builder()
 				.longOpt("station")
 				.hasArgs()
 				.argName("stations")
 				.valueSeparator(',')
 				.build());
-		options.addOption("instance", false, "accumulo instance name");
+		options.addOption("instance", true, "accumulo instance name");
 		options.addOption(Option.builder()
 				.longOpt("zoo")
 				.hasArgs()
 				.argName("zooServers")
 				.valueSeparator(',')
 				.build());
-		options.addOption("u", "user", false, "accumulo user");
-		options.addOption("p", "passwd", false, "accumulo user password");
+		options.addOption("u", "user", true, "accumulo user");
+		options.addOption("p", "passwd", true, "accumulo user password");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
@@ -77,7 +77,7 @@ public class Main {
 		String zooServers = cmd.hasOption("zoo") ?  String.join(",", cmd.getOptionValues("zoo")) : "localhost:2181";
 		Instance inst = new ZooKeeperInstance(instanceName, zooServers);
 
-		Connector conn = inst.getConnector(cmd.getOptionValue("user"), new PasswordToken(cmd.getOptionValue("passwd")));
+		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 10);
