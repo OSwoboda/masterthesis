@@ -19,8 +19,9 @@ public class Main {
 		// set up the batch execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		//final ParameterTool params = ParameterTool.fromArgs(args);
-
+		
 		Job job = Job.getInstance();
+		AccumuloInputFormat.setInputTableName(job, "oswoboda.bymonth");
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken("P@ssw0rd"));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
 		ClientConfiguration clientConfig = new ClientConfiguration();
