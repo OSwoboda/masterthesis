@@ -69,7 +69,7 @@ public class Main {
 		if (cmd.hasOption("stations")) {
 			stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
 		}
-		
+		System.out.println("stationsEmpty: "+stations.isEmpty());
 		Date startDate = TimeFormatUtils.parse(start, TimeFormatUtils.YEAR_MONTH_DAY);
 		Date endDate = TimeFormatUtils.parse(end, TimeFormatUtils.YEAR_MONTH_DAY);
 		String instanceName = cmd.getOptionValue("instance", "hdp-accumulo-instance");
@@ -109,7 +109,11 @@ public class Main {
 			for(Entry<Key,Value> entry : bscan) {
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
 			    resultAggregators.add(resultAggregator);
+			    if (resultAggregator.getValue() != null) {
+			    	System.out.println(resultAggregator.getValue());
+			    }
 			}
+			System.out.println("Number of results: "+resultAggregators.size());
 			Aggregator aggregator = aggClass.newInstance();
 			for (Aggregator resultAggregator : resultAggregators) {
 				aggregator.merge(resultAggregator);
