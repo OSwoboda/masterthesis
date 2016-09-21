@@ -79,7 +79,7 @@ public class Main {
 		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
-		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 10);
+		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		try {
 			Set<Range> ranges = Collections.singleton(new Range());
 			if (!stations.isEmpty()) {
