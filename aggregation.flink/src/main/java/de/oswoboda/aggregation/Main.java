@@ -6,9 +6,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.aggregation.Aggregations;
 import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.hadoop.mapreduce.Job;
@@ -28,8 +26,7 @@ public class Main {
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts("localhost:2181"));
 		
 		DataSource<Tuple2<Key, Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
-		DataSet<Tuple2<Key, Value>> result = source.aggregate(Aggregations.MIN, 1);
-		result.print();
+		source.print();
 
 		// execute program
 		env.execute("Accumulo Flink Aggregation");
