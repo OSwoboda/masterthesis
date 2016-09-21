@@ -15,16 +15,12 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
-{	
-	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
-	
+{		
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
 	private long start;
@@ -35,7 +31,10 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
-        queryStations.addAll(Arrays.asList(options.get("stations").split(",")));
+        String stations = options.get("stations");
+        if (stations.length() > 0) {
+        	queryStations.addAll(Arrays.asList(stations.split(",")));
+        }
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
         String aggregation = options.get("aggregation");
@@ -52,10 +51,8 @@ public class AggregationIterator extends WrappingIterator
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(super.getTopKey(), super.getTopValue());
-				LOG.error("queryStations empty: "+queryStations.isEmpty());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
-						LOG.error("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
 					}
 				}

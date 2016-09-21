@@ -97,7 +97,6 @@ public class Main {
 			bscan.fetchColumn(new Text("data_points"), new Text(metricName));
 			
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
-			System.out.println(StringUtils.join(stations, ","));
 			is.addOption("stations", StringUtils.join(stations, ","));
 			is.addOption("start", String.valueOf(startDate.getTime()));
 			is.addOption("end", String.valueOf(endDate.getTime()));
