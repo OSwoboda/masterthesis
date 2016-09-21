@@ -77,7 +77,7 @@ public class Main {
 		String zooServers = cmd.hasOption("zoo") ?  String.join(",", cmd.getOptionValues("zoo")) : "localhost:2181";
 		Instance inst = new ZooKeeperInstance(instanceName, zooServers);
 
-		Connector conn = inst.getConnector(cmd.getOptionValue("u", "root"), new PasswordToken(cmd.getOptionValue("p", "P@ssw0rd")));
+		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 10);
