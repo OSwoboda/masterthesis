@@ -10,6 +10,7 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.aggregation.Aggregations;
+import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.mapreduce.Job;
@@ -29,22 +30,19 @@ public class Main {
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts("localhost:2181"));
 		
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
-		DataSet<Tuple2<String, Long>> result = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple2<String, Long>>() {
+		DataSet<Tuple1<Long>> result = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple2<String, Long>> out) throws Exception {
+			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple1<Long>> out) throws Exception {
 				Metric metric = Metric.parse(in.f0, in.f1);
-				//if (metric.getStation().equals("GME00102292")) {
-					out.collect(new Tuple2<String, Long>(metric.getStation(), metric.getValue()));
-				//}
+				if (metric.getStation().equals("GME00102292")) {
+					out.collect(new Tuple1<Long>(metric.getValue()));
+				}
 			}
-		}).aggregate(Aggregations.MIN, 1);
+		}).aggregate(Aggregations.MIN, 0);
 		
 		result.print();
-
-		// execute program
-		env.execute("Accumulo Flink Aggregation");
 	}
 }
