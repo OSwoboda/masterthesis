@@ -28,19 +28,19 @@ public class Main {
 		ClientConfiguration clientConfig = new ClientConfiguration();
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts("localhost:2181"));
 		
-		DataSet<Tuple2<Key, Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
-		DataSet<Long> result = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Long>() {
+		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
+		DataSet<Tuple2<String, Long>> result = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple2<String, Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void flatMap(Tuple2<Key, Value> in, Collector<Long> out) throws Exception {
+			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple2<String, Long>> out) throws Exception {
 				Metric metric = Metric.parse(in.f0, in.f1);
 				if (metric.getStation().equals("GME00102292")) {
-					out.collect(metric.getValue());
+					out.collect(new Tuple2<String, Long>(metric.getStation(), metric.getValue()));
 				}
 			}
-		}).aggregate(Aggregations.MIN, 0);
+		}).aggregate(Aggregations.MIN, 1);
 		
 		result.print();
 
