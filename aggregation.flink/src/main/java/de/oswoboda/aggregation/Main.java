@@ -36,9 +36,9 @@ public class Main {
 			@Override
 			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple2<String, Long>> out) throws Exception {
 				Metric metric = Metric.parse(in.f0, in.f1);
-				if (metric.getStation().equals("GME00102292")) {
+				//if (metric.getStation().equals("GME00102292")) {
 					out.collect(new Tuple2<String, Long>(metric.getStation(), metric.getValue()));
-				}
+				//}
 			}
 		}).aggregate(Aggregations.MIN, 1);
 		
