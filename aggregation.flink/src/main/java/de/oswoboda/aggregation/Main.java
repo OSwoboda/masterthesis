@@ -6,12 +6,12 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.aggregation.Aggregations;
-import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.util.Collector;
@@ -44,7 +44,7 @@ public class Main {
 				}
 			}
 		}).aggregate(Aggregations.MIN, 0);*/
-		DataSet<Tuple4<String, String, Long, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple4<String, String, Long, Long>>() {
+		DataSet<Tuple1<Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple4<String, String, Long, Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -53,19 +53,26 @@ public class Main {
 				Metric metric = Metric.parse(in.f0, in.f1);
 				out.collect(new Tuple4<String, String, Long, Long>(metric.getMetricName(), metric.getStation(), metric.getTimestamp(), metric.getValue()));
 			}
-		}).filter(new FilterFunction<Tuple4<String,String,Long,Long>>() {
+		}).groupBy(0,1).reduceGroup(new GroupReduceFunction<Tuple4<String,String,Long,Long>, Tuple1<Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public boolean filter(Tuple4<String, String, Long, Long> value) throws Exception {
-				if (value.f0.equals("TMIN") && value.f1.equals("GME00102292")) {
-					return true;
+			public void reduce(Iterable<Tuple4<String, String, Long, Long>> in, Collector<Tuple1<Long>> out) throws Exception {
+				for (Tuple4<String, String, Long, Long> metric : in) {
+					if (metric.f0.equals("TMIN")) {
+						if (metric.f1.equals("GME00102292")) {
+							out.collect(new Tuple1<Long>(metric.f3));
+						} else {
+							break;
+						}
+					} else {
+						break;
+					}
 				}
-				return false;
 			}
 		});
-		DataSet<Tuple> result = data.project(3).aggregate(Aggregations.MIN, 0);
+		DataSet<Tuple1<Long>> result = data.aggregate(Aggregations.MIN, 0);
 		
 		result.print();
 	}
