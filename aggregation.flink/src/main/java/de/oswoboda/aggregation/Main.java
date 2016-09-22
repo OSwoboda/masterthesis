@@ -53,7 +53,7 @@ public class Main {
 				Metric metric = Metric.parse(in.f0, in.f1);
 				out.collect(new Tuple4<String, String, Long, Long>(metric.getMetricName(), metric.getStation(), metric.getTimestamp(), metric.getValue()));
 			}
-		}).groupBy(0,1).reduceGroup(new GroupReduceFunction<Tuple4<String,String,Long,Long>, Tuple1<Long>>() {
+		}).groupBy(0).reduceGroup(new GroupReduceFunction<Tuple4<String,String,Long,Long>, Tuple1<Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -61,11 +61,11 @@ public class Main {
 			public void reduce(Iterable<Tuple4<String, String, Long, Long>> in, Collector<Tuple1<Long>> out) throws Exception {
 				for (Tuple4<String, String, Long, Long> metric : in) {
 					if (metric.f0.equals("TMIN")) {
-						if (metric.f1.equals("GME00102292")) {
+						//if (metric.f1.equals("GME00102292")) {
 							out.collect(new Tuple1<Long>(metric.f3));
-						} else {
+						/*} else {
 							break;
-						}
+						}*/
 					} else {
 						break;
 					}
