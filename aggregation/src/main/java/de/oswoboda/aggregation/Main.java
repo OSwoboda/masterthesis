@@ -126,6 +126,7 @@ public class Main {
 		} finally {
 			bscan.close();
 		}
+		System.out.println(new Date(System.currentTimeMillis()));
 	}
 
 }

@@ -21,6 +21,7 @@ import org.apache.accumulo.core.iterators.WrappingIterator;
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.TimeFormatUtils;
 import de.oswoboda.aggregation.aggregators.Aggregator;
+import jline.internal.Log;
 
 public class AggregationIterator extends WrappingIterator
 {		
@@ -69,6 +70,7 @@ public class AggregationIterator extends WrappingIterator
 							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
 						}
 						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
+						Log.error("SEEKING");
 						lastMetric = metric;
 						continue;
 					}
