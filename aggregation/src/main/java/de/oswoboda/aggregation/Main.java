@@ -77,7 +77,7 @@ public class Main {
 		Instance inst = new ZooKeeperInstance(instanceName, zooServers);
 
 		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
-		
+		System.out.println(Range.prefix(TimeFormatUtils.YEAR_MONTH.format(startDate)).getStartKey());
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		try {

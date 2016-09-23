@@ -17,8 +17,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.TimeFormatUtils;
@@ -26,7 +24,7 @@ import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private TreeSet<String> queryStations = new TreeSet<>();
 	private Aggregator aggregator;
@@ -43,7 +41,6 @@ public class AggregationIterator extends WrappingIterator
         if (stations.length() > 0) {
         	queryStations.addAll(Arrays.asList(stations.split(",")));
         }
-        LOG.error("LAST STATION: "+queryStations.last());
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
         String aggregation = options.get("aggregation");
@@ -74,7 +71,6 @@ public class AggregationIterator extends WrappingIterator
 							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
 						}
 						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
-						LOG.error("SEEKING");
 						lastMetric = metric;
 						continue;
 					}
