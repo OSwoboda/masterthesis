@@ -69,6 +69,7 @@ public class AggregationIterator extends WrappingIterator
 							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
 						}
 						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
+						lastMetric = metric;
 						continue;
 					}
 				}
