@@ -36,6 +36,7 @@ public class AggregationIterator extends WrappingIterator
 	
 	private Key last;
 	private Metric lastMetric = null;
+	private boolean seeked = false; 
 	
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
@@ -60,22 +61,13 @@ public class AggregationIterator extends WrappingIterator
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(last, super.getTopValue());
+				if (seeked && !queryStations.contains(metric.getStation())) {
+					seekForward(metric);
+					continue;
+				}
 				if (lastMetric != null && !queryStations.isEmpty()) {
 					if (!metric.getStation().equals(lastMetric.getStation()) && lastMetric.getStation().equals(queryStations.last())) {
-						Range range;
-						Calendar calendar = Calendar.getInstance();
-						calendar.setTimeInMillis(lastMetric.getTimestamp());
-						if (lastMetric.isMonthFormat()) {
-							calendar.add(Calendar.MONTH, 1);
-							range = new Range(TimeFormatUtils.YEAR_MONTH.format(calendar.getTime())+"_"+queryStations.first(),
-									TimeFormatUtils.YEAR_MONTH.format(end)+"_"+queryStations.last());
-						} else {
-							calendar.add(Calendar.YEAR, 1);
-							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
-						}
-						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
-						LOG.info("SEEKING");
-						lastMetric = metric;
+						seekForward(metric);
 						continue;
 					}
 				}
@@ -87,6 +79,7 @@ public class AggregationIterator extends WrappingIterator
 					}					
 				}				
 				super.next();
+				seeked = false;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -115,6 +108,24 @@ public class AggregationIterator extends WrappingIterator
     public void next() throws IOException {
         last = null;
     }
+	
+	private void seekForward(Metric metric) throws IOException {
+		Range range;
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(lastMetric.getTimestamp());
+		if (lastMetric.isMonthFormat()) {
+			calendar.add(Calendar.MONTH, 1);
+			range = new Range(TimeFormatUtils.YEAR_MONTH.format(calendar.getTime())+"_"+queryStations.first(),
+					TimeFormatUtils.YEAR_MONTH.format(end)+"_"+queryStations.last());
+		} else {
+			calendar.add(Calendar.YEAR, 1);
+			range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
+		}
+		super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
+		seeked = true;
+		LOG.info("SEEKING");
+		lastMetric = metric;
+	}
 	
     public static Aggregator decodeValue(Value value) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bis = new ByteArrayInputStream(value.get());
