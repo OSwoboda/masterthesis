@@ -30,7 +30,7 @@ public class Metric {
 		String station = split[1];
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
-		calendar.add((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
+		calendar.set((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
 		long timestamp = calendar.getTimeInMillis();
 		long longValue = ByteBuffer.wrap(value.get()).getLong();
 		String metricName = key.getColumnQualifier().toString();
