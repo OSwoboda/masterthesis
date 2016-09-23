@@ -40,6 +40,7 @@ public class AggregationIterator extends WrappingIterator
         if (stations.length() > 0) {
         	queryStations.addAll(Arrays.asList(stations.split(",")));
         }
+        Log.error("LAST STATION: "+queryStations.last());
         start = Long.parseLong(options.get("start"));
         end = Long.parseLong(options.get("end"));
         String aggregation = options.get("aggregation");
