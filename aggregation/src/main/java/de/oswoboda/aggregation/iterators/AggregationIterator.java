@@ -66,7 +66,7 @@ public class AggregationIterator extends WrappingIterator
 						Calendar calendar = Calendar.getInstance();
 						calendar.setTimeInMillis(lastMetric.getTimestamp());
 						if (lastMetric.isMonthFormat()) {
-							calendar.add(Calendar.MONTH, 1);
+							calendar.add(Calendar.MONTH, -1);
 							range = new Range(TimeFormatUtils.YEAR_MONTH.format(calendar.getTime())+"_"+queryStations.first(),
 									TimeFormatUtils.YEAR_MONTH.format(end)+"_"+queryStations.last());
 						} else {
