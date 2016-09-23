@@ -69,7 +69,7 @@ public class Main {
 		if (cmd.hasOption("stations")) {
 			stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
 		}
-		System.out.println("stationsEmpty: "+stations.isEmpty());
+		
 		Date startDate = TimeFormatUtils.parse(start, TimeFormatUtils.YEAR_MONTH_DAY);
 		Date endDate = TimeFormatUtils.parse(end, TimeFormatUtils.YEAR_MONTH_DAY);
 		String instanceName = cmd.getOptionValue("instance", "hdp-accumulo-instance");
@@ -81,20 +81,11 @@ public class Main {
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		try {
-			Set<Range> ranges = Collections.singleton(new Range(
-					Range.prefix(TimeFormatUtils.YEAR_MONTH.format(startDate)).getStartKey(),
-					Range.prefix(TimeFormatUtils.YEAR_MONTH.format(endDate)).getEndKey()));
-			if (!stations.isEmpty()) {
-				if (bymonth) {
-					ranges = Collections.singleton(new Range(
-							TimeFormatUtils.YEAR_MONTH.format(startDate)+"_"+stations.first(),
-							TimeFormatUtils.YEAR_MONTH.format(endDate)+"_"+stations.last()));
-				} else {
-					ranges = Collections.singleton(new Range(
-							TimeFormatUtils.YEAR.format(startDate)+"_"+stations.first(),
-							TimeFormatUtils.YEAR.format(endDate)+"_"+stations.last()));
-				}
-			}
+			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startDate) : TimeFormatUtils.YEAR.format(startDate);
+			String endRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(endDate) : TimeFormatUtils.YEAR.format(endDate);
+			Set<Range> ranges = (stations.isEmpty()) ? 
+					Collections.singleton(new Range(Range.prefix(startRow).getStartKey(), Range.prefix(endRow).getEndKey())) :
+						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 			bscan.setRanges(ranges);
 			bscan.fetchColumn(new Text("data_points"), new Text(metricName));
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
@@ -105,7 +96,7 @@ public class Main {
 			is.addOption("aggregation", aggClass.getName());
 			
 			bscan.addScanIterator(is);
-	
+			System.out.println(new Date(System.currentTimeMillis()));
 			List<Aggregator> resultAggregators = new ArrayList<>();
 			for(Entry<Key,Value> entry : bscan) {
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
