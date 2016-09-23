@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -17,6 +18,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.TimeFormatUtils;
@@ -24,7 +27,7 @@ import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
 {
-	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private TreeSet<String> queryStations = new TreeSet<>();
 	private Aggregator aggregator;
@@ -78,6 +81,8 @@ public class AggregationIterator extends WrappingIterator
 				lastMetric = metric;
 				if (queryStations.isEmpty() || queryStations.contains(lastMetric.getStation())) {
 					if (lastMetric.getTimestamp() >= start && lastMetric.getTimestamp() <= end) {
+						LOG.info("Value added: "+lastMetric.getValue()+" with Date: "+(new Date(lastMetric.getTimestamp())));
+						LOG.error("Value added: "+lastMetric.getValue()+" with Date: "+(new Date(lastMetric.getTimestamp())));
 						aggregator.add(lastMetric.getValue());
 					}					
 				}				
