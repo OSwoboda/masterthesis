@@ -74,6 +74,7 @@ public class AggregationIterator extends WrappingIterator
 							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
 						}
 						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
+						LOG.info("SEEKING");
 						lastMetric = metric;
 						continue;
 					}
@@ -82,7 +83,6 @@ public class AggregationIterator extends WrappingIterator
 				if (queryStations.isEmpty() || queryStations.contains(lastMetric.getStation())) {
 					if (lastMetric.getTimestamp() >= start && lastMetric.getTimestamp() <= end) {
 						LOG.info("Value added: "+lastMetric.getValue()+" with Date: "+(new Date(lastMetric.getTimestamp())));
-						LOG.error("Value added: "+lastMetric.getValue()+" with Date: "+(new Date(lastMetric.getTimestamp())));
 						aggregator.add(lastMetric.getValue());
 					}					
 				}				
