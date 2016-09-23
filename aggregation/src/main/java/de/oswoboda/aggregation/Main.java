@@ -81,7 +81,9 @@ public class Main {
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		try {
-			Set<Range> ranges = Collections.singleton(new Range());
+			Set<Range> ranges = Collections.singleton(new Range(
+					Range.prefix(TimeFormatUtils.YEAR_MONTH.format(startDate)).getStartKey(),
+					Range.prefix(TimeFormatUtils.YEAR_MONTH.format(endDate)).getEndKey()));
 			if (!stations.isEmpty()) {
 				if (bymonth) {
 					ranges = Collections.singleton(new Range(
