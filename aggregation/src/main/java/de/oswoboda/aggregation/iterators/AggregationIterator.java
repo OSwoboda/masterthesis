@@ -57,7 +57,7 @@ public class AggregationIterator extends WrappingIterator
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(last, super.getTopValue());
-				if (lastMetric != null) {
+				if (lastMetric != null && !queryStations.isEmpty()) {
 					if (!metric.getStation().equals(lastMetric.getStation()) && lastMetric.getStation().equals(queryStations.last())) {
 						Range range;
 						Calendar calendar = Calendar.getInstance();
