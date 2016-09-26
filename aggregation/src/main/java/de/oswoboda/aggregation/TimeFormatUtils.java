@@ -22,7 +22,7 @@ public class TimeFormatUtils {
 	public static Date add(Date date, boolean bymonth, int amount) {
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(date);
-		calendar.add(bymonth ? Calendar.DAY_OF_MONTH : Calendar.YEAR, amount);
+		calendar.add(bymonth ? Calendar.MONTH : Calendar.YEAR, amount);
 		return calendar.getTime();
 	}
 
