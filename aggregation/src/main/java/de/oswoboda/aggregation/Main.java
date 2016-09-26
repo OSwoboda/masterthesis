@@ -82,14 +82,16 @@ public class Main {
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		try {
+			Date startRowDate = startDate;
 			Date endRowDate = endDate;
 			if (stations.isEmpty()) {
+				startRowDate = TimeFormatUtils.add(startDate, bymonth, -1);
 				endRowDate = TimeFormatUtils.add(endDate, bymonth, 1);
 			}
-			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startDate) : TimeFormatUtils.YEAR.format(startDate);
+			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startRowDate) : TimeFormatUtils.YEAR.format(startRowDate);
 			String endRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(endRowDate) : TimeFormatUtils.YEAR.format(endRowDate);
 			Set<Range> ranges = (stations.isEmpty()) ? 
-					Collections.singleton(new Range(startRow, true, endRow, false)) :
+					Collections.singleton(new Range(startRow, endRow)) :
 						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 			if (cmd.hasOption("range")) {
 				ranges = Collections.singleton(new Range());
