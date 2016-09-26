@@ -8,7 +8,6 @@ import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -18,8 +17,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.TimeFormatUtils;
@@ -27,7 +24,7 @@ import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private TreeSet<String> queryStations = new TreeSet<>();
 	private Aggregator aggregator;
@@ -36,8 +33,6 @@ public class AggregationIterator extends WrappingIterator
 	
 	private Key last;
 	private Metric lastMetric = null;
-	private boolean seeked = false;
-	private boolean finish = false;
 	
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
@@ -58,14 +53,10 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-		while (super.hasTop() && !finish) {
+		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(last, super.getTopValue());
-				if ((lastMetric == null || seeked) && !queryStations.contains(metric.getStation())) {
-					finish = true;
-					break;
-				}
 				if (lastMetric != null && !queryStations.isEmpty()) {
 					if (!metric.getStation().equals(lastMetric.getStation()) && lastMetric.getStation().equals(queryStations.last())) {
 						Range range;
@@ -80,8 +71,6 @@ public class AggregationIterator extends WrappingIterator
 							range = new Range(TimeFormatUtils.YEAR.format(calendar.getTime())+"_"+queryStations.first());
 						}
 						super.seek(range, Collections.singleton(last.getColumnFamilyData()), true);
-						seeked = true;
-						LOG.info("SEEKING");
 						lastMetric = metric;
 						continue;
 					}
@@ -89,12 +78,10 @@ public class AggregationIterator extends WrappingIterator
 				lastMetric = metric;
 				if (queryStations.isEmpty() || queryStations.contains(lastMetric.getStation())) {
 					if (lastMetric.getTimestamp() >= start && lastMetric.getTimestamp() <= end) {
-						LOG.info("Value added: "+lastMetric.getValue()+" with Date: "+(new Date(lastMetric.getTimestamp())));
 						aggregator.add(lastMetric.getValue());
 					}					
 				}				
 				super.next();
-				seeked = false;
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

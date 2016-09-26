@@ -55,6 +55,7 @@ public class Main {
 				.build());
 		options.addOption("u", "user", true, "accumulo user");
 		options.addOption("p", "passwd", true, "accumulo user password");
+		options.addOption("range", false, "full range scan");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
@@ -84,8 +85,11 @@ public class Main {
 			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startDate) : TimeFormatUtils.YEAR.format(startDate);
 			String endRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(endDate) : TimeFormatUtils.YEAR.format(endDate);
 			Set<Range> ranges = (stations.isEmpty()) ? 
-					Collections.singleton(new Range(Range.prefix(startRow).getStartKey(), Range.prefix(endRow).getEndKey())) :
+					Collections.singleton(new Range(startRow, endRow)) :
 						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
+			if (cmd.hasOption("range")) {
+				ranges = Collections.singleton(new Range());
+			}
 			bscan.setRanges(ranges);
 			bscan.fetchColumn(new Text("data_points"), new Text(metricName));
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
