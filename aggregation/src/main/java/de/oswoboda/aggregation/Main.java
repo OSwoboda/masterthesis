@@ -85,7 +85,7 @@ public class Main {
 			Date startRowDate = startDate;
 			Date endRowDate = endDate;
 			if (stations.isEmpty()) {
-				startRowDate = TimeFormatUtils.add(startDate, bymonth, -1);
+				//startRowDate = TimeFormatUtils.add(startDate, bymonth, -1);
 				endRowDate = TimeFormatUtils.add(endDate, bymonth, 1);
 			}
 			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startRowDate) : TimeFormatUtils.YEAR.format(startRowDate);
