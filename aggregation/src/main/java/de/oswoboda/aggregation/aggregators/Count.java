@@ -22,7 +22,7 @@ public class Count extends Aggregator {
 	
 	@Override
 	public Double getResult() {
-		return (double) count;
+		return Double.valueOf(count);
 	}
 	
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
