@@ -1,21 +1,14 @@
 package de.oswoboda.aggregation;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.format.DateTimeFormatter;
 
 public class TimeFormatUtils {
 	
-	public final static DateFormat YEAR_MONTH_DAY = new SimpleDateFormat("yyyyMMdd");
-	public final static DateFormat YEAR_MONTH = new SimpleDateFormat("yyyyMM");
-	public final static DateFormat YEAR = new SimpleDateFormat("yyyy");
-	public final static DateFormat MONTH_DAY = new SimpleDateFormat("MMdd");
-	public final static DateFormat MONTH = new SimpleDateFormat("MM");	
-	public final static DateFormat DAY = new SimpleDateFormat("dd");
-	
-	public static Date parse(String dateString, DateFormat dateFormat) throws ParseException {
-		return dateFormat.parse(dateString);
-	}
+	public final static DateTimeFormatter YEAR_MONTH = DateTimeFormatter.ofPattern("yyyyMM");
+	public final static DateTimeFormatter YEAR = DateTimeFormatter.ofPattern("yyyy");
+	public final static DateTimeFormatter MONTH_DAY= DateTimeFormatter.ofPattern("MMdd");
+	public final static DateTimeFormatter MONTH = DateTimeFormatter.ofPattern("MM");	
+	public final static DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd");
+	public final static DateTimeFormatter OUTPUT = DateTimeFormatter.ofPattern("HH:mm:ss,SSS");
 
 }

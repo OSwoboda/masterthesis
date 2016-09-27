@@ -16,8 +16,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
