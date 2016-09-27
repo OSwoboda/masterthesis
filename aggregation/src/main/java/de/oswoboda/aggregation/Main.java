@@ -93,6 +93,8 @@ public class Main {
 			}
 			String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
 			String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
+			System.out.println(startRow);
+			System.out.println(endRow);
 			Set<Range> ranges = (stations.isEmpty()) ? 
 					Collections.singleton(new Range(startRow, endRow)) :
 						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
