@@ -30,7 +30,7 @@ public class AggregationIterator extends WrappingIterator
 	private long start;
 	private long end;
 	
-	private Key last;
+	private Key last = null;
 	
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
@@ -54,11 +54,11 @@ public class AggregationIterator extends WrappingIterator
     public boolean hasTop() {
 		LOG.info("hasTop()");
 		while (super.hasTop()) {
-			LOG.info("hasTop!");
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(last, super.getTopValue());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
+					LOG.info(metric.getTimestamp()+" between "+start+" and "+end);
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
 						LOG.info("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
