@@ -2,7 +2,8 @@ package de.oswoboda.aggregation;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
-import java.time.LocalDate;
+import java.time.Year;
+import java.time.YearMonth;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -28,8 +29,14 @@ public class Metric {
 		String[] split = rowKey.split("_");
 		boolean isMonthFormat = (split[0].length() == 6) ? true : false;
 		String station = split[1];
-		LocalDate date = LocalDate.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR);
-		long timestamp = date.plusDays(key.getTimestamp()).toEpochDay();
+		long timestamp;
+		if (isMonthFormat) {
+			YearMonth date = YearMonth.parse(split[0], TimeFormatUtils.YEAR_MONTH);
+			timestamp = date.atDay((int)key.getTimestamp()).toEpochDay();
+		} else {
+			Year date = Year.parse(split[0], TimeFormatUtils.YEAR);
+			timestamp = date.atDay((int)key.getTimestamp()).toEpochDay();
+		}
 		long longValue = ByteBuffer.wrap(value.get()).getLong();
 		String metricName = key.getColumnQualifier().toString();
 		

@@ -24,7 +24,7 @@ import de.oswoboda.aggregation.aggregators.Aggregator;
 
 public class AggregationIterator extends WrappingIterator
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
@@ -36,7 +36,6 @@ public class AggregationIterator extends WrappingIterator
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
         super.init(source, options, env);
-        LOG.info("init AggregationIterator");
         String stations = options.get("stations");
         if (stations.length() > 0) {
         	queryStations.addAll(Arrays.asList(stations.split(",")));
@@ -53,22 +52,17 @@ public class AggregationIterator extends WrappingIterator
 	
 	@Override
     public boolean hasTop() {
-		LOG.info("hasTop()");
 		while (super.hasTop()) {
 			last = super.getTopKey();
 			try {
 				Metric metric = Metric.parse(last, super.getTopValue());
-				LOG.info("isEmpty? : "+queryStations.isEmpty());
 				if (queryStations.isEmpty() || queryStations.contains(metric.getStation())) {
-					LOG.info(metric.getTimestamp()+" between "+start+" and "+end);
 					if (metric.getTimestamp() >= start && metric.getTimestamp() <= end) {
-						LOG.info("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
 					}					
 				}
 			} catch (ParseException e) {
-				LOG.error(e.getLocalizedMessage());
-				//throw new RuntimeException(e);
+				throw new RuntimeException(e);
 			}
 			try {
 				super.next();
