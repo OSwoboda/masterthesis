@@ -2,7 +2,7 @@ package de.oswoboda.aggregation;
 
 import java.nio.ByteBuffer;
 import java.text.ParseException;
-import java.util.Calendar;
+import java.time.LocalDate;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -28,10 +28,8 @@ public class Metric {
 		String[] split = rowKey.split("_");
 		boolean isMonthFormat = (split[0].length() == 6) ? true : false;
 		String station = split[1];
-		Calendar calendar = Calendar.getInstance();
-		calendar.setTime(TimeFormatUtils.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR));
-		calendar.set((isMonthFormat) ? Calendar.DAY_OF_MONTH : Calendar.DAY_OF_YEAR, (int) key.getTimestamp());
-		long timestamp = calendar.getTimeInMillis();
+		LocalDate date = LocalDate.parse(split[0], (isMonthFormat) ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR);
+		long timestamp = date.plusDays(key.getTimestamp()).toEpochDay();
 		long longValue = ByteBuffer.wrap(value.get()).getLong();
 		String metricName = key.getColumnQualifier().toString();
 		

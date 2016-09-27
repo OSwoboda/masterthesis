@@ -1,9 +1,10 @@
 package de.oswoboda.aggregation;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -26,13 +27,17 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.io.Text;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.aggregators.Aggregator;
 import de.oswoboda.aggregation.iterators.AggregationIterator;
 
 public class Main {
 	
-	public static void main(String[] args) throws Exception {
+	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
+	
+	public static void main(String[] args) throws Exception {		
 		
 		Options options = new Options();
 		options.addOption("metricName", true, "name of the metric, e.g. TMIN");
@@ -55,7 +60,6 @@ public class Main {
 				.build());
 		options.addOption("u", "user", true, "accumulo user");
 		options.addOption("p", "passwd", true, "accumulo user password");
-		options.addOption("range", false, "full range scan");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
@@ -71,8 +75,8 @@ public class Main {
 			stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
 		}
 		
-		Date startDate = TimeFormatUtils.parse(start, TimeFormatUtils.YEAR_MONTH_DAY);
-		Date endDate = TimeFormatUtils.parse(end, TimeFormatUtils.YEAR_MONTH_DAY);
+		LocalDate startDate = LocalDate.parse(start, DateTimeFormatter.BASIC_ISO_DATE);
+		LocalDate endDate = LocalDate.parse(end, DateTimeFormatter.BASIC_ISO_DATE);
 		String instanceName = cmd.getOptionValue("instance", "hdp-accumulo-instance");
 		String zooServers = cmd.hasOption("zoo") ?  String.join(",", cmd.getOptionValues("zoo")) : "localhost:2181";
 		Instance inst = new ZooKeeperInstance(instanceName, zooServers);
@@ -81,33 +85,30 @@ public class Main {
 		
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
+		long startMillis;
 		try {
-			Date startRowDate = startDate;
-			Date endRowDate = endDate;
+			LocalDate endRowDate = endDate;
 			if (stations.isEmpty()) {
-				//startRowDate = TimeFormatUtils.add(startDate, bymonth, -1);
-				endRowDate = TimeFormatUtils.add(endDate, bymonth, 1);
+				endRowDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
 			}
-			String startRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(startRowDate) : TimeFormatUtils.YEAR.format(startRowDate);
-			String endRow = (bymonth) ? TimeFormatUtils.YEAR_MONTH.format(endRowDate) : TimeFormatUtils.YEAR.format(endRowDate);
+			String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
+			String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
 			Set<Range> ranges = (stations.isEmpty()) ? 
 					Collections.singleton(new Range(startRow, endRow)) :
 						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
-			if (cmd.hasOption("range")) {
-				ranges = Collections.singleton(new Range());
-			}
 			bscan.setRanges(ranges);
 			bscan.fetchColumn(new Text("data_points"), new Text(metricName));
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
 			is.addOption("stations", StringUtils.join(stations, ","));
-			is.addOption("start", String.valueOf(startDate.getTime()));
-			is.addOption("end", String.valueOf(endDate.getTime()));
+			is.addOption("start", String.valueOf(startDate.toEpochDay()));
+			is.addOption("end", String.valueOf(endDate.toEpochDay()));
 			Class<? extends Aggregator> aggClass = Aggregator.getAggregator(aggregation);
 			is.addOption("aggregation", aggClass.getName());
 			
 			bscan.addScanIterator(is);
-			System.out.println(new Date(System.currentTimeMillis()));
 			List<Aggregator> resultAggregators = new ArrayList<>();
+			startMillis = System.currentTimeMillis();
+			LOG.info("batchScan started");
 			for(Entry<Key,Value> entry : bscan) {
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
 			    resultAggregators.add(resultAggregator);
@@ -128,7 +129,8 @@ public class Main {
 		} finally {
 			bscan.close();
 		}
-		System.out.println(new Date(System.currentTimeMillis()));
+		long endMillis = System.currentTimeMillis();
+		LOG.info("batchScan finished; Duration: "+(endMillis-startMillis)+"ms");
 	}
 
 }
