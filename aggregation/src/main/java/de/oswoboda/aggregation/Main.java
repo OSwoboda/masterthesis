@@ -107,18 +107,19 @@ public class Main {
 			Class<? extends Aggregator> aggClass = Aggregator.getAggregator(aggregation);
 			is.addOption("aggregation", aggClass.getName());
 			
-			bscan.addScanIterator(is);
+			//bscan.addScanIterator(is);
 			List<Aggregator> resultAggregators = new ArrayList<>();
 			startMillis = System.currentTimeMillis();
 			LOG.info("batchScan started");
 			for(Entry<Key,Value> entry : bscan) {
-				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
+				/*Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
 			    resultAggregators.add(resultAggregator);
 			    if (resultAggregator.getValue() != null) {
 			    	System.out.println(resultAggregator.getValue());
-			    }
+			    }*/
+				System.out.println(entry.getValue());
 			}
-			System.out.println("Number of results: "+resultAggregators.size());
+			/*System.out.println("Number of results: "+resultAggregators.size());
 			Aggregator aggregator = aggClass.newInstance();
 			for (Aggregator resultAggregator : resultAggregators) {
 				aggregator.merge(resultAggregator);
@@ -127,7 +128,7 @@ public class Main {
 				System.out.println(aggregator.getResult());
 			} else {
 				System.out.println("No Result!");
-			}
+			}*/
 		} finally {
 			bscan.close();
 		}
