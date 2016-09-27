@@ -51,9 +51,13 @@ public class Main {
 		}
 		String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
 		String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
-		Set<Range> ranges = (stations.isEmpty()) ? 
+		/*Set<Range> ranges = (stations.isEmpty()) ? 
 				Collections.singleton(new Range(startRow, endRow)) :
-					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
+					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));*/
+		Set<Range> ranges = new HashSet<>();
+		ranges.add(new Range(startRow, startDate.plusYears(10).format(TimeFormatUtils.YEAR_MONTH)));
+		ranges.add(new Range(startDate.plusYears(10).format(TimeFormatUtils.YEAR_MONTH), startDate.plusYears(20).format(TimeFormatUtils.YEAR_MONTH)));
+		ranges.add(new Range(startDate.plusYears(20).format(TimeFormatUtils.YEAR_MONTH), endRow));
 		
 		Job job = Job.getInstance();
 		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text("data_points"), new Text(params.get("metricName", "TMIN")))));
