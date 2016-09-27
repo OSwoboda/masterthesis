@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -30,7 +31,7 @@ public class AggregationIterator extends WrappingIterator
 	private long start;
 	private long end;
 	
-	private Key last = null;
+	private Key last;
 	
 	@Override
     public void init(SortedKeyValueIterator<Key, Value> source, Map<String, String> options, IteratorEnvironment env) throws IOException {
@@ -64,10 +65,15 @@ public class AggregationIterator extends WrappingIterator
 						LOG.info("addValue: "+metric.getValue());
 						aggregator.add(metric.getValue());
 					}					
-				}				
+				}
+			} catch (ParseException e) {
+				LOG.error(e.getLocalizedMessage());
+				//throw new RuntimeException(e);
+			}
+			try {
 				super.next();
-			} catch (Exception e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		}
 		return last != null;
