@@ -31,11 +31,11 @@ public class Main {
 		final ParameterTool params = ParameterTool.fromArgs(args);		
 		
 		Job job = Job.getInstance();
-		AccumuloInputFormat.setInputTableName(job, "oswoboda.bymonth");
-		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken("P@ssw0rd"));
+		AccumuloInputFormat.setInputTableName(job, params.get("tableName", "oswoboda.bymonth"));
+		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
 		ClientConfiguration clientConfig = new ClientConfiguration();
-		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts("localhost:2181"));
+		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
 		
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
