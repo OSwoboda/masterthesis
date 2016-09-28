@@ -49,7 +49,7 @@ public class Percentile extends Aggregator {
 		for (Entry<Long, AtomicInteger> entry : histogram.entrySet()) {
 			counter += entry.getValue().get();
 			if (counter >= element) {
-				LOG.info("Count: "+count+"; Counter: "+counter+"; Element: "+element+"; Value: "+entry.getKey());
+				LOG.info("Percentile: "+percentile+"; Count: "+count+"; Counter: "+counter+"; Element: "+element+"; Value: "+entry.getKey());
 				return (double)entry.getKey();
 			}
 		}
