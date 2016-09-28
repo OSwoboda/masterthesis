@@ -2,10 +2,8 @@ package de.oswoboda.aggregation;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -111,30 +109,30 @@ public class Main {
 			}
 			
 			bscan.addScanIterator(is);
-			List<Aggregator> resultAggregators = new ArrayList<>();
+			Aggregator aggregator = null;
+			int results = 0;
+			
 			startMillis = System.currentTimeMillis();
 			LOG.info("batchScan started");
+			
 			for(Entry<Key,Value> entry : bscan) {
+				++results;
 				Aggregator resultAggregator = AggregationIterator.decodeValue(entry.getValue());
-			    resultAggregators.add(resultAggregator);
+				if (aggregator == null) {
+					aggregator = resultAggregator;
+				}
+			    aggregator.merge(resultAggregator);
 			    if (resultAggregator.getValue() != null) {
-			    	System.out.println(resultAggregator.getValue());
+			    	LOG.info("Results from Aggregator "+results+": Value "+resultAggregator.getValue()+"; Count: "+resultAggregator.getCount());
 			    }
 			}
-			System.out.println("Number of results: "+resultAggregators.size());
-			Aggregator aggregator;
-			if (aggregation.equals("percentile")) {
-				aggregator = aggClass.getDeclaredConstructor(int.class).newInstance(Integer.valueOf(percentile));
-			} else {
-				aggregator = aggClass.newInstance();
-			}
-			for (Aggregator resultAggregator : resultAggregators) {
-				aggregator.merge(resultAggregator);
-			}
+			
+			LOG.info("Number of results: "+results);
+			
 			if (aggregator.getResult() != null) {
-				System.out.println(aggregator.getResult());
+				LOG.info("EndResult: "+aggregator.getResult());
 			} else {
-				System.out.println("No Result!");
+				LOG.info("No Result!");
 			}
 		} finally {
 			bscan.close();
