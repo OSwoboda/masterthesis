@@ -122,7 +122,12 @@ public class Main {
 			    }
 			}
 			System.out.println("Number of results: "+resultAggregators.size());
-			Aggregator aggregator = aggClass.newInstance();
+			Aggregator aggregator;
+			if (aggregation.equals("percentile")) {
+				aggregator = aggClass.getDeclaredConstructor(int.class).newInstance(Integer.valueOf(percentile));
+			} else {
+				aggregator = aggClass.newInstance();
+			}
 			for (Aggregator resultAggregator : resultAggregators) {
 				aggregator.merge(resultAggregator);
 			}
