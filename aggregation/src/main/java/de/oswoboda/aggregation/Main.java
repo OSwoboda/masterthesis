@@ -45,6 +45,7 @@ public class Main {
 		options.addOption("start", true, "start date, e.g. 20100101");
 		options.addOption("end", true, "end date, e.g. 20150101");
 		options.addOption("agg", true, "which aggregation should be used, e.g. min");
+		options.addOption("percentile" , true, "which percentile should be calculated, e.g. 50 for median");
 		options.addOption(Option.builder()
 				.longOpt("stations")
 				.hasArgs()
@@ -69,6 +70,7 @@ public class Main {
 		String end = cmd.getOptionValue("end", "20150101");
 		boolean bymonth = tableName.contains("bymonth") ? true : false;
 		String aggregation = cmd.getOptionValue("agg", "min");
+		String percentile = cmd.getOptionValue("percentile", "50");
 		
 		TreeSet<String> stations = new TreeSet<>();
 		if (cmd.hasOption("stations")) {
@@ -104,6 +106,9 @@ public class Main {
 			is.addOption("end", String.valueOf(endDate.toEpochDay()));
 			Class<? extends Aggregator> aggClass = Aggregator.getAggregator(aggregation);
 			is.addOption("aggregation", aggClass.getName());
+			if (aggregation.equals("percentile")) {
+				is.addOption("percentile", percentile);
+			}
 			
 			bscan.addScanIterator(is);
 			List<Aggregator> resultAggregators = new ArrayList<>();

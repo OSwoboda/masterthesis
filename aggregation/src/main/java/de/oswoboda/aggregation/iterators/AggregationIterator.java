@@ -19,6 +19,7 @@ import org.apache.accumulo.core.iterators.WrappingIterator;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
+import de.oswoboda.aggregation.aggregators.Percentile;
 
 public class AggregationIterator extends WrappingIterator
 {
@@ -46,6 +47,9 @@ public class AggregationIterator extends WrappingIterator
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+        if (options.containsKey("percentile")) {
+        	((Percentile)aggregator).setPercentile(Integer.valueOf(options.get("percentile")));
+        }
 	}
 	
 	@Override

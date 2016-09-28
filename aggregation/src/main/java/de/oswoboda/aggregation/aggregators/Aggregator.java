@@ -43,6 +43,8 @@ public abstract class Aggregator implements Serializable {
                 return Avg.class;
             case "count":
             	return Count.class;
+            case "percentile":
+            	return Percentile.class;
             default:
                 return Min.class;
         }
