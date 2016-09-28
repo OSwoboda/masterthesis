@@ -16,6 +16,8 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
@@ -23,7 +25,7 @@ import de.oswoboda.aggregation.aggregators.Percentile;
 
 public class AggregationIterator extends WrappingIterator
 {
-	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
@@ -49,6 +51,7 @@ public class AggregationIterator extends WrappingIterator
 		}
         if (options.containsKey("percentile")) {
         	((Percentile)aggregator).setPercentile(Integer.valueOf(options.get("percentile")));
+        	LOG.info("Percentile: "+Integer.valueOf(options.get("percentile")));
         }
 	}
 	
