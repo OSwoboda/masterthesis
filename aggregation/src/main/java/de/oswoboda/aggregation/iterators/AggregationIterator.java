@@ -16,16 +16,13 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iterators.WrappingIterator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import de.oswoboda.aggregation.Metric;
 import de.oswoboda.aggregation.aggregators.Aggregator;
-import de.oswoboda.aggregation.aggregators.Percentile;
 
 public class AggregationIterator extends WrappingIterator
 {
-	private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
+	//private static final Logger LOG = LoggerFactory.getLogger(AggregationIterator.class);
 	
 	private Set<String> queryStations = new HashSet<>();
 	private Aggregator aggregator;
@@ -45,14 +42,14 @@ public class AggregationIterator extends WrappingIterator
         end = Long.parseLong(options.get("end"));
         String aggregation = options.get("aggregation");
         try {
-			aggregator = (Aggregator) Class.forName(aggregation).newInstance();
+        	if (options.containsKey("percentile")) {
+        		aggregator = (Aggregator) Class.forName(aggregation).getDeclaredConstructor(int.class).newInstance(Integer.valueOf(options.get("percentile")));
+        	} else {
+    			aggregator = (Aggregator) Class.forName(aggregation).newInstance();        		
+        	}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-        if (options.containsKey("percentile")) {
-        	((Percentile)aggregator).setPercentile(Integer.valueOf(options.get("percentile")));
-        	LOG.info("Percentile: "+Integer.valueOf(options.get("percentile")));
-        }
 	}
 	
 	@Override

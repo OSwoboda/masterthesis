@@ -14,12 +14,9 @@ public class Percentile extends Aggregator {
 	private TreeMap<Long, AtomicInteger> histogram = new TreeMap<>();
 	private int percentile;
 	
-	public Percentile() {
-		count = 0;
-	}
-	
-	public void setPercentile(int percentile) {
+	public Percentile(int percentile) {
 		this.percentile = percentile;
+		count = 0;
 	}
 	
 	@Override
@@ -61,18 +58,15 @@ public class Percentile extends Aggregator {
 	}
 	
 	public static void main(String[] args) throws InstantiationException, IllegalAccessException {
-		Aggregator agg = new Percentile();
-		((Percentile) agg).setPercentile(50);
+		Aggregator agg = new Percentile(50);
 		for (int i = 1; i <= 5; i++) {
 			agg.add(i);
 		}
-		Aggregator aggOne = new Percentile();
-		((Percentile) aggOne).setPercentile(50);
+		Aggregator aggOne = new Percentile(50);
 		for (int i = 1; i <= 3; i++) {
 			aggOne.add(i);
 		}
-		Aggregator aggTwo = new Percentile();
-		((Percentile) aggTwo).setPercentile(50);
+		Aggregator aggTwo = new Percentile(50);
 		for (int i = 4; i <= 5; i++) {
 			aggTwo.add(i);
 		}
