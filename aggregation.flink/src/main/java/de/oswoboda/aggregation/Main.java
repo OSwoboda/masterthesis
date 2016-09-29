@@ -21,16 +21,11 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.aggregation.Aggregations;
-import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-
-import de.oswoboda.aggregation.aggregators.Count;
-import de.oswoboda.aggregation.aggregators.Sum;
 
 public class Main {
 
@@ -94,36 +89,40 @@ public class Main {
 				return false;
 			}
 		});
-		DataSet<Tuple1<Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
+		DataSet<Tuple2<Long, Integer>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple2<Long, Integer>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple1<Long>> out) throws Exception {
-				out.collect(new Tuple1<Long>(Metric.parseValue(in.f1)));
+			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple2<Long, Integer>> out) throws Exception {
+				out.collect(new Tuple2<Long, Integer>(Metric.parseValue(in.f1), 1));
 			}
 		});
 		switch (params.get("agg", "min")) {
-		case "count":	data.mapPartition(new Count()).sum(0).print();
-						break;
-		case "max":	data.aggregate(Aggregations.MAX, 0).print();
+		case "avg":	data.sum(0).andSum(1).combineGroup(new GroupCombineFunction<Tuple2<Long, Integer>, Double>() {
+
+						private static final long serialVersionUID = 1L;
+
+						@Override
+						public void combine(Iterable<Tuple2<Long, Integer>> in, Collector<Double> out) throws Exception {
+							Long sum = 0L;
+							Double count = 0d;
+							for (Tuple2<Long, Integer> tuple : in) {
+								sum += tuple.f0;
+								count += tuple.f1;
+							}
+							out.collect(sum/count);
+						}
+					}).print();
 					break;
-		case "sum":	data.mapPartition(new Sum()).combineGroup(new GroupCombineFunction<Tuple1<Long>, Long>() {
-
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			public void combine(Iterable<Tuple1<Long>> in, Collector<Long> out) throws Exception {
-				Long sum = 0L;
-				for (Tuple1<Long> tuple : in) {
-					sum += tuple.f0;
-				}
-				out.collect(sum);
-			}
-		}).print();
+		case "count":	data.sum(1).print();
+						break;
+		case "max":	data.max(0).print();
+					break;
+		case "sum":	data.sum(0).print();
 					break;
 		case "min":	
-		default:	data.aggregate(Aggregations.MIN, 0).print();
+		default:	data.min(0).print();
 					break;
 		}
 	}
