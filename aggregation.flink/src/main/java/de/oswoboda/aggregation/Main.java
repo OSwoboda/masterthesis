@@ -18,6 +18,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.aggregation.Aggregations;
@@ -107,7 +108,19 @@ public class Main {
 						break;
 		case "max":	data.aggregate(Aggregations.MAX, 0).print();
 					break;
-		case "sum":	data.mapPartition(new Sum()).sum(0).print();
+		case "sum":	data.mapPartition(new Sum()).combineGroup(new GroupCombineFunction<Tuple1<Long>, Long>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void combine(Iterable<Tuple1<Long>> in, Collector<Long> out) throws Exception {
+				Long sum = 0L;
+				for (Tuple1<Long> tuple : in) {
+					sum += tuple.f0;
+				}
+				out.collect(sum);
+			}
+		}).print();
 					break;
 		case "min":	
 		default:	data.aggregate(Aggregations.MIN, 0).print();
