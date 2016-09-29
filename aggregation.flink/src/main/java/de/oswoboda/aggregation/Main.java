@@ -29,6 +29,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 
 import de.oswoboda.aggregation.aggregators.Count;
+import de.oswoboda.aggregation.aggregators.Sum;
 
 public class Main {
 
@@ -102,11 +103,11 @@ public class Main {
 			}
 		});
 		switch (params.get("agg", "min")) {
-		case "count":	data.mapPartition(new Count()).print();
+		case "count":	data.mapPartition(new Count()).sum(0).print();
 						break;
 		case "max":	data.aggregate(Aggregations.MAX, 0).print();
 					break;
-		case "sum":	data.aggregate(Aggregations.SUM, 0).print();
+		case "sum":	data.mapPartition(new Sum()).sum(0).print();
 					break;
 		case "min":	
 		default:	data.aggregate(Aggregations.MIN, 0).print();
