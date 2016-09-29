@@ -18,14 +18,16 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
+
+import de.oswoboda.aggregation.aggregators.AvgGroupCombine;
 
 public class Main {
 
@@ -89,40 +91,27 @@ public class Main {
 				return false;
 			}
 		});
-		DataSet<Tuple2<Long, Integer>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple2<Long, Integer>>() {
+		DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple2<Long, Integer>> out) throws Exception {
-				out.collect(new Tuple2<Long, Integer>(Metric.parseValue(in.f1), 1));
+			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple3<Long, Integer, Long>> out) throws Exception {
+				Long value = Metric.parseValue(in.f1);
+				out.collect(new Tuple3<Long, Integer, Long>(value, 1, (long)Math.pow(value, 2)));
 			}
 		});
 		switch (params.get("agg", "min")) {
-		case "avg":	data.sum(0).andSum(1).combineGroup(new GroupCombineFunction<Tuple2<Long, Integer>, Double>() {
-
-						private static final long serialVersionUID = 1L;
-
-						@Override
-						public void combine(Iterable<Tuple2<Long, Integer>> in, Collector<Double> out) throws Exception {
-							Long sum = 0L;
-							Double count = 0d;
-							for (Tuple2<Long, Integer> tuple : in) {
-								sum += tuple.f0;
-								count += tuple.f1;
-							}
-							out.collect(sum/count);
-						}
-					}).print();
+		case "avg":	data.project(0,1).sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
 					break;
-		case "count":	data.sum(1).print();
+		case "count":	data.project(1).sum(0).print();
 						break;
-		case "max":	data.max(0).print();
+		case "max":	data.project(0).max(0).print();
 					break;
-		case "sum":	data.sum(0).print();
+		case "sum":	data.project(0).sum(0).print();
 					break;
 		case "min":	
-		default:	data.min(0).print();
+		default:	data.project(0).min(0).print();
 					break;
 		}
 	}
