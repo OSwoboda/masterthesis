@@ -28,6 +28,7 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 
 import de.oswoboda.aggregation.aggregators.AvgGroupCombine;
+import de.oswoboda.aggregation.aggregators.DevGroupCombine;
 
 public class Main {
 
@@ -102,16 +103,18 @@ public class Main {
 			}
 		});
 		switch (params.get("agg", "min")) {
-		case "avg":	data.project(0,1).sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
+		case "dev":	data.sum(0).andSum(1).andSum(2).combineGroup(new DevGroupCombine()).print();
 					break;
-		case "count":	data.project(1).sum(0).print();
+		case "avg":	data.sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
+					break;
+		case "count":	data.sum(1).project(1).print();
 						break;
-		case "max":	data.project(0).max(0).print();
+		case "max":	data.max(0).project(0).print();
 					break;
-		case "sum":	data.project(0).sum(0).print();
+		case "sum":	data.sum(0).project(0).print();
 					break;
 		case "min":	
-		default:	data.project(0).min(0).print();
+		default:	data.min(0).project(0).print();
 					break;
 		}
 	}
