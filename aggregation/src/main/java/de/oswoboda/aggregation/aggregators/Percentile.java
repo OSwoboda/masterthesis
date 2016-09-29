@@ -4,11 +4,8 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class Percentile extends Aggregator {
-	private static final Logger LOG = LoggerFactory.getLogger(Percentile.class);
+	//private static final Logger LOG = LoggerFactory.getLogger(Percentile.class);
 	private static final long serialVersionUID = 1L;
 
 	private TreeMap<Long, AtomicInteger> histogram = new TreeMap<>();
@@ -46,7 +43,7 @@ public class Percentile extends Aggregator {
 		for (Entry<Long, AtomicInteger> entry : histogram.entrySet()) {
 			counter += entry.getValue().get();
 			if (counter >= element) {
-				LOG.info("Percentile: "+percentile+"; Count: "+count+"; Counter: "+counter+"; Element: "+element+"; Value: "+entry.getKey());
+				//LOG.info("Percentile: "+percentile+"; Count: "+count+"; Counter: "+counter+"; Element: "+element+"; Value: "+entry.getKey());
 				return (double)entry.getKey();
 			}
 		}

@@ -28,6 +28,8 @@ import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 
+import de.oswoboda.aggregation.aggregators.Count;
+
 public class Main {
 
 	public static void main(String[] args) throws Exception {
@@ -99,7 +101,16 @@ public class Main {
 				out.collect(new Tuple1<Long>(Metric.parseValue(in.f1)));
 			}
 		});
-		
-		data.aggregate(Aggregations.MIN, 0).print();
+		switch (params.get("agg", "min")) {
+		case "count":	data.mapPartition(new Count()).print();
+						break;
+		case "max":	data.aggregate(Aggregations.MAX, 0).print();
+					break;
+		case "sum":	data.aggregate(Aggregations.SUM, 0).print();
+					break;
+		case "min":	
+		default:	data.aggregate(Aggregations.MIN, 0).print();
+					break;
+		}
 	}
 }
