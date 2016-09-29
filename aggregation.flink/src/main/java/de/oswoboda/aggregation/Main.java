@@ -146,6 +146,7 @@ public class Main {
 					counter += entry.getValue().get();
 					if (counter >= element) {
 						out.collect(entry.getKey());
+						break;
 					}
 				}
 			}
