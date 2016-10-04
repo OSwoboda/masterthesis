@@ -59,6 +59,7 @@ public class Main {
 				.build());
 		options.addOption("u", "user", true, "accumulo user");
 		options.addOption("p", "passwd", true, "accumulo user password");
+		options.addOption("baseline", false, "if only a baseline should be made");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
@@ -86,6 +87,23 @@ public class Main {
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
 		long startMillis;
+		if (cmd.hasOption("baseline")) {
+			try {
+				startMillis = System.currentTimeMillis();
+				LOG.info("batchScan started");
+				long results = 0;			
+				for(@SuppressWarnings("unused") Entry<Key,Value> entry : bscan) {
+					++results;
+				}
+				LOG.info("Number of results: "+results);				
+			} finally {
+				bscan.close();
+			}
+			long endMillis = System.currentTimeMillis();
+			LOG.info("batchScan finished; Duration: "+(endMillis-startMillis)+"ms");
+			System.exit(0);
+		}
+		
 		try {
 			LocalDate endRowDate = endDate;
 			if (stations.isEmpty()) {
