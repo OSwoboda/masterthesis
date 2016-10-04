@@ -97,7 +97,7 @@ public class Main {
 					Collections.singleton(new Range(startRow, endRow)) :
 						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 			bscan.setRanges(ranges);
-			bscan.fetchColumn(new Text("data_points"), new Text(metricName));
+			bscan.fetchColumnFamily(new Text(metricName));
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
 			is.addOption("stations", StringUtils.join(stations, ","));
 			is.addOption("start", String.valueOf(startDate.toEpochDay()));

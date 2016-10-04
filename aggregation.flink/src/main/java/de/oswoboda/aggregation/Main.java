@@ -62,7 +62,7 @@ public class Main {
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
 		Job job = Job.getInstance();
-		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text("data_points"), new Text(params.get("metricName", "TMIN")))));
+		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setRanges(job, ranges);
 		AccumuloInputFormat.setInputTableName(job, tableName);

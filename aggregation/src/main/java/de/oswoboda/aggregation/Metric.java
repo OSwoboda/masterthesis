@@ -63,7 +63,7 @@ public class Metric {
 	}
 	
 	public static String parseMetricName(Key key) {
-		return key.getColumnQualifier().toString();
+		return key.getColumnFamily().toString();
 	}
 
 	public String getStation() {
