@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.ClientConfiguration;
 import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
@@ -100,6 +101,11 @@ public class Main {
 			ClientConfiguration clientConfig = new ClientConfiguration();
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
 			
+			BatchWriterConfig config = new BatchWriterConfig();
+			config.setMaxMemory(10000000L);
+			
+			AccumuloOutputFormat.setBatchWriterOptions(job, config);
+			
 			DataSet<Tuple2<Text, Mutation>> mutations = csvInput.flatMap(new FlatMapFunction<Tuple4<String,String,String,Long>, Tuple2<Text, Mutation>>() {
 				
 				private static final long serialVersionUID = 1L;
@@ -107,7 +113,7 @@ public class Main {
 				@Override
 				public void flatMap(Tuple4<String, String, String, Long> in, Collector<Tuple2<Text, Mutation>> out) throws Exception {
 					Text table = new Text(tableName);
-					LocalDate date = LocalDate.parse(in.f0, DateTimeFormatter.BASIC_ISO_DATE);
+					LocalDate date = LocalDate.parse(in.f1, DateTimeFormatter.BASIC_ISO_DATE);
 					Mutation mutation = new Mutation(new Text(date.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+in.f0));
 					
 					Text colFam = new Text(in.f2);
