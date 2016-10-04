@@ -2,17 +2,12 @@ package de.oswoboda;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
 import java.util.Date;
 
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.java.DataSet;
 
@@ -35,18 +30,15 @@ import org.apache.flink.api.java.DataSet;
  */
 
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.hadoop.mapreduce.HadoopOutputFormat;
-import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.hadoop.shaded.com.google.common.primitives.Longs;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
 
-public class Main {
+public class Mainbk {
 
 	public static void main(String[] args) throws Exception {
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
@@ -87,7 +79,8 @@ public class Main {
 			builders.output(outputFormat);
 		}
 		
-		if (accumulo) {			
+		if (accumulo) {
+			
 			final String tableName = params.get("table", "oswoboda.bymonth");
 			final boolean bymonth = (tableName.contains("month")) ? true : false;
 			String instanceName = params.get("instance", "hdp-accumulo-instance");
@@ -95,40 +88,51 @@ public class Main {
 			String user = params.get("u", "root");
 			String passwd = params.get("p", "P@ssw0rd");
 			
-			Job job = Job.getInstance();
-			AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(passwd));
-			ClientConfiguration clientConfig = new ClientConfiguration();
-			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
-			
-			DataSet<Tuple2<Text, Mutation>> mutations = csvInput.flatMap(new FlatMapFunction<Tuple4<String,String,String,Long>, Tuple2<Text, Mutation>>() {
+			DataSet<Mutation> mutations = csvInput.groupBy(0).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, Mutation>() {
 				
 				private static final long serialVersionUID = 1L;
+				private DateFormat readFormat = new SimpleDateFormat("yyyyMMdd");
+				private DateFormat rowMonthFormat = new SimpleDateFormat("yyyyMM");
+				private DateFormat rowYearFormat = new SimpleDateFormat("yyyy");
+				private DateFormat timestampFormat = new SimpleDateFormat("dd");
 				
 				@Override
-				public void flatMap(Tuple4<String, String, String, Long> in, Collector<Tuple2<Text, Mutation>> out) throws Exception {
-					Text table = new Text(tableName);
-					LocalDate date = LocalDate.parse(in.f0, DateTimeFormatter.BASIC_ISO_DATE);
-					Mutation mutation = new Mutation(new Text(date.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+in.f0));
-					
-					Text colFam = new Text(in.f2);
-					Text colQual = new Text("");
-					ColumnVisibility colVis = new ColumnVisibility("standard");
-					long timestamp = Long.parseLong(date.format(TimeFormatUtils.DAY));
-					if (!bymonth) {
-						timestamp = date.getDayOfYear();
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Mutation> out) throws Exception {
+					DateFormat rowFormat = (bymonth) ? rowMonthFormat : rowYearFormat;
+					Mutation mutation = null;
+					String last = null;
+					for (Tuple4<String, String, String, Long> data : in) {
+						Date date = readFormat.parse(data.f1);
+						String current = rowFormat.format(date);
+						if (mutation == null || !last.equals(current)) {
+							if (mutation != null) {
+								out.collect(mutation);
+							}
+							last = current;
+							Text rowID = new Text(current+"_"+data.f0);
+							mutation = new Mutation(rowID);
+						}
+						
+						Text colFam = new Text("data_points");
+						Text colQual = new Text(data.f2);
+						ColumnVisibility colVis = new ColumnVisibility("standard");
+						long timestamp = Long.parseLong(timestampFormat.format(date));
+						if (!bymonth) {
+							Calendar calendar = Calendar.getInstance();
+							calendar.setTime(date);
+							timestamp = calendar.get(Calendar.DAY_OF_YEAR);
+						}
+						
+						Value value = new Value(Longs.toByteArray(data.f3));						
+						
+						mutation.put(colFam, colQual, colVis, timestamp, value);
 					}
-					
-					Value value = new Value(Longs.toByteArray(in.f3));						
-					
-					mutation.put(colFam, colQual, colVis, timestamp, value);
-					
-					out.collect(new Tuple2<Text, Mutation>(table, mutation));
+					out.collect(mutation);
 				}
 				
 			});
 			
-			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<>(new AccumuloOutputFormat(), job);
-			mutations.output(hadoopOutputFormat);
+			mutations.output(new AccumuloOutputFormat(tableName, instanceName, zooServers, user, passwd));
 		}
 		
 		env.execute("Insert Data");

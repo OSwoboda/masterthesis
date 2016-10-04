@@ -6,7 +6,7 @@ import org.apache.flink.util.Collector;
 
 public class AvgGroupCombine implements GroupCombineFunction<Tuple3<Long, Integer, Long>, Double> {
 	
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 8243872847817262023L;
 
 	@Override
 	public void combine(Iterable<Tuple3<Long, Integer, Long>> in, Collector<Double> out) throws Exception {

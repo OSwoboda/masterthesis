@@ -104,54 +104,54 @@ public class Main {
 		switch (params.get("agg", "min")) {
 		case "percentile":	data.mapPartition(new MapPartitionFunction<Tuple3<Long,Integer,Long>, Tuple2<TreeMap<Long, AtomicInteger>, Integer>>() {
 
-			private static final long serialVersionUID = 4253091931510537747L;
-
-			@Override
-			public void mapPartition(Iterable<Tuple3<Long, Integer, Long>> in, Collector<Tuple2<TreeMap<Long, AtomicInteger>, Integer>> out) throws Exception {
-				int count = 0;
-				TreeMap<Long, AtomicInteger> histogram = new TreeMap<>();
-				for (Tuple3<Long, Integer, Long> tuple : in) {
-					++count;
-					AtomicInteger current;
-					if ((current = histogram.putIfAbsent(tuple.f0, new AtomicInteger(1))) != null) {
-						current.incrementAndGet();
-					}
-				}
-				out.collect(new Tuple2<TreeMap<Long, AtomicInteger>, Integer>(histogram, count));
-			}
-		}).combineGroup(new GroupCombineFunction<Tuple2<TreeMap<Long,AtomicInteger>,Integer>, Long>() {
-			
-			private static final long serialVersionUID = -1842750312448857332L;
-
-			@Override
-			public void combine(Iterable<Tuple2<TreeMap<Long, AtomicInteger>, Integer>> in, Collector<Long> out) throws Exception {
-				int count = 0;
-				TreeMap<Long, AtomicInteger> histogram = null;
-				for (Tuple2<TreeMap<Long, AtomicInteger>, Integer> tuple : in) {
-					count += tuple.f1;
-					if (histogram == null) {
-						histogram = tuple.f0;
-						continue;
-					}
-					for (Entry<Long, AtomicInteger> entry : tuple.f0.entrySet()) {
-						AtomicInteger current;
-						if ((current = histogram.putIfAbsent(entry.getKey(), entry.getValue())) != null) {
-							current.addAndGet(entry.getValue().get());
-						}
-					}
-				}
-				int element = (int) Math.ceil(params.getInt("percentile", 50)/100d*count);
-				int counter = 0;
-				for (Entry<Long, AtomicInteger> entry : histogram.entrySet()) {
-					counter += entry.getValue().get();
-					if (counter >= element) {
-						out.collect(entry.getKey());
-						break;
-					}
-				}
-			}
-		}).print();
-		break;
+								private static final long serialVersionUID = 4253091931510537747L;
+					
+								@Override
+								public void mapPartition(Iterable<Tuple3<Long, Integer, Long>> in, Collector<Tuple2<TreeMap<Long, AtomicInteger>, Integer>> out) throws Exception {
+									int count = 0;
+									TreeMap<Long, AtomicInteger> histogram = new TreeMap<>();
+									for (Tuple3<Long, Integer, Long> tuple : in) {
+										++count;
+										AtomicInteger current;
+										if ((current = histogram.putIfAbsent(tuple.f0, new AtomicInteger(1))) != null) {
+											current.incrementAndGet();
+										}
+									}
+									out.collect(new Tuple2<TreeMap<Long, AtomicInteger>, Integer>(histogram, count));
+								}
+							}).combineGroup(new GroupCombineFunction<Tuple2<TreeMap<Long,AtomicInteger>,Integer>, Long>() {
+								
+								private static final long serialVersionUID = -1842750312448857332L;
+					
+								@Override
+								public void combine(Iterable<Tuple2<TreeMap<Long, AtomicInteger>, Integer>> in, Collector<Long> out) throws Exception {
+									int count = 0;
+									TreeMap<Long, AtomicInteger> histogram = null;
+									for (Tuple2<TreeMap<Long, AtomicInteger>, Integer> tuple : in) {
+										count += tuple.f1;
+										if (histogram == null) {
+											histogram = tuple.f0;
+											continue;
+										}
+										for (Entry<Long, AtomicInteger> entry : tuple.f0.entrySet()) {
+											AtomicInteger current;
+											if ((current = histogram.putIfAbsent(entry.getKey(), entry.getValue())) != null) {
+												current.addAndGet(entry.getValue().get());
+											}
+										}
+									}
+									int element = (int) Math.ceil(params.getInt("percentile", 50)/100d*count);
+									int counter = 0;
+									for (Entry<Long, AtomicInteger> entry : histogram.entrySet()) {
+										counter += entry.getValue().get();
+										if (counter >= element) {
+											out.collect(entry.getKey());
+											break;
+										}
+									}
+								}
+							}).print();
+							break;
 		case "dev":	data.sum(0).andSum(1).andSum(2).combineGroup(new DevGroupCombine()).print();
 					break;
 		case "avg":	data.sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
