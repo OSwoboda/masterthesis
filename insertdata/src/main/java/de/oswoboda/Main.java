@@ -102,6 +102,7 @@ public class Main {
 			
 			BatchWriterConfig config = new BatchWriterConfig();
 			config.setMaxMemory(10000000L);
+			config.setMaxWriteThreads(32);
 			
 			AccumuloOutputFormat.setBatchWriterOptions(job, config);
 			
