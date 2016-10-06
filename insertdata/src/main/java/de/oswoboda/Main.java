@@ -13,7 +13,6 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
 import org.apache.flink.api.java.DataSet;
 
@@ -106,27 +105,38 @@ public class Main {
 			
 			AccumuloOutputFormat.setBatchWriterOptions(job, config);
 			
-			DataSet<Tuple2<Text, Mutation>> mutations = csvInput.flatMap(new FlatMapFunction<Tuple4<String,String,String,Long>, Tuple2<Text, Mutation>>() {
+			DataSet<Tuple2<Text, Mutation>> mutations = csvInput.groupBy(0).reduceGroup(new GroupReduceFunction<Tuple4<String,String,String,Long>, Tuple2<Text, Mutation>>() {
 				
-				private static final long serialVersionUID = 1L;
-				
+				private static final long serialVersionUID = -6279402384188788056L;
+
 				@Override
-				public void flatMap(Tuple4<String, String, String, Long> in, Collector<Tuple2<Text, Mutation>> out) throws Exception {
+				public void reduce(Iterable<Tuple4<String, String, String, Long>> in, Collector<Tuple2<Text, Mutation>> out) throws Exception {
 					Text table = new Text(tableName);
-					LocalDate date = LocalDate.parse(in.f1, DateTimeFormatter.BASIC_ISO_DATE);
-					Mutation mutation = new Mutation(new Text(date.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+in.f0));
-					
-					Text colFam = new Text(in.f2);
-					Text colQual = new Text("");
-					ColumnVisibility colVis = new ColumnVisibility("standard");
-					long timestamp = Long.parseLong(date.format(TimeFormatUtils.DAY));
-					if (!bymonth) {
-						timestamp = date.getDayOfYear();
+					Mutation mutation = null;
+					String last = null;
+					for (Tuple4<String, String, String, Long> data : in) {
+						LocalDate date = LocalDate.parse(data.f1, DateTimeFormatter.BASIC_ISO_DATE);
+						String current = date.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR);
+						if (mutation == null || !last.equals(current)) {
+							 if (mutation != null) {
+								 out.collect(new Tuple2<Text, Mutation>(table, mutation));
+							 }
+							 last = current;
+							 mutation = new Mutation(new Text(current+"_"+data.f0));
+						}
+						
+						Text colFam = new Text(data.f2);
+						Text colQual = new Text("");
+						ColumnVisibility colVis = new ColumnVisibility("standard");
+						long timestamp = Long.parseLong(date.format(TimeFormatUtils.DAY));
+						if (!bymonth) {
+							timestamp = date.getDayOfYear();
+						}
+						
+						Value value = new Value(Longs.toByteArray(data.f3));						
+						
+						mutation.put(colFam, colQual, colVis, timestamp, value);
 					}
-					
-					Value value = new Value(Longs.toByteArray(in.f3));						
-					
-					mutation.put(colFam, colQual, colVis, timestamp, value);
 					
 					out.collect(new Tuple2<Text, Mutation>(table, mutation));
 				}
