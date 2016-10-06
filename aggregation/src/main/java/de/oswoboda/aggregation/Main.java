@@ -89,9 +89,10 @@ public class Main {
 		long startMillis;
 		if (cmd.hasOption("baseline")) {
 			try {
+				bscan.setRanges(Collections.singleton(new Range()));
 				startMillis = System.currentTimeMillis();
 				LOG.info("batchScan started");
-				long results = 0;			
+				long results = 0;
 				for(@SuppressWarnings("unused") Entry<Key,Value> entry : bscan) {
 					++results;
 				}

@@ -58,7 +58,7 @@ public class Main {
 		}
 		String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
 		String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
-		Set<Range> ranges = (stations.isEmpty()) ? 
+		Set<Range> ranges = stations.isEmpty() ? 
 				Collections.singleton(new Range(startRow, endRow)) :
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
@@ -73,7 +73,9 @@ public class Main {
 		if (!baseline) {
 			AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 			AccumuloInputFormat.setRanges(job, ranges);
-		}		
+		} else {
+			AccumuloInputFormat.setRanges(job, Collections.singleton(new Range()));
+		}
 		
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		if (baseline) {
