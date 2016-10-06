@@ -97,7 +97,7 @@ public class Main {
 			
 			Job job = Job.getInstance();
 			AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(passwd));
-			ClientConfiguration clientConfig = new ClientConfiguration();
+			ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
 			
 			BatchWriterConfig config = new BatchWriterConfig();
