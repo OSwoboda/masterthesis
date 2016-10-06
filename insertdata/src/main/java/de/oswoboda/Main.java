@@ -8,7 +8,7 @@ import java.util.Date;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.core.client.mapred.AccumuloOutputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -35,14 +35,15 @@ import org.apache.flink.api.java.DataSet;
  */
 
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.hadoop.mapreduce.HadoopOutputFormat;
+import org.apache.flink.api.java.hadoop.mapred.HadoopOutputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.hadoop.shaded.com.google.common.primitives.Longs;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapred.JobConf;
 import org.kairosdb.client.builder.Metric;
 import org.kairosdb.client.builder.MetricBuilder;
 
@@ -95,10 +96,7 @@ public class Main {
 			String user = params.get("u", "root");
 			String passwd = params.get("p", "P@ssw0rd");
 			
-			Job job = Job.getInstance();
-			job.setOutputFormatClass(AccumuloOutputFormat.class);
-			job.setOutputKeyClass(Text.class);
-			job.setOutputValueClass(Mutation.class);
+			JobConf job = new JobConf(new Configuration());
 			AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(passwd));
 			ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
@@ -146,8 +144,8 @@ public class Main {
 				}
 				
 			});
-
-			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<>(new AccumuloOutputFormat(), job);
+			
+			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<Text, Mutation>(new AccumuloOutputFormat(), job);
 			mutations.output(hadoopOutputFormat);
 		}
 		
