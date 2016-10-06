@@ -14,6 +14,7 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.flink.api.common.functions.GroupReduceFunction;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.DataSet;
 
 /**
@@ -143,9 +144,10 @@ public class Main {
 				}
 				
 			});
-			
-			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<>(new AccumuloOutputFormat(), job);
-			mutations.output(hadoopOutputFormat);
+
+			//HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<>(new AccumuloOutputFormat()., job);
+			//mutations.output(hadoopOutputFormat);
+			mutations.output((OutputFormat<Tuple2<Text, Mutation>>) new AccumuloOutputFormat());
 		}
 		
 		env.execute("Insert Data");
