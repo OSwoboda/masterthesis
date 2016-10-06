@@ -96,6 +96,9 @@ public class Main {
 			String passwd = params.get("p", "P@ssw0rd");
 			
 			Job job = Job.getInstance();
+			job.setOutputFormatClass(AccumuloOutputFormat.class);
+			job.setOutputKeyClass(Text.class);
+			job.setOutputValueClass(Mutation.class);
 			AccumuloOutputFormat.setConnectorInfo(job, user, new PasswordToken(passwd));
 			ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
