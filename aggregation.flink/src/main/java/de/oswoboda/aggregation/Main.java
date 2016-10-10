@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.mapred.AccumuloInputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -25,8 +25,9 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapred.JobConf;
 
 import de.oswoboda.aggregation.aggregators.AvgGroupCombine;
 import de.oswoboda.aggregation.aggregators.DevGroupCombine;
@@ -62,12 +63,12 @@ public class Main {
 				Collections.singleton(new Range(startRow, endRow)) :
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
-		Job job = Job.getInstance();
+		JobConf job = new JobConf(new Configuration());
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
-		ClientConfiguration clientConfig = new ClientConfiguration();
+		ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
 		
 		if (!baseline) {
@@ -76,8 +77,8 @@ public class Main {
 		} else {
 			AccumuloInputFormat.setRanges(job, Collections.singleton(new Range()));
 		}
-		
-		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
+		AccumuloInputFormat accumuloInputFormat = new AccumuloInputFormat();
+		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accumuloInputFormat, Key.class, Value.class, job);
 		if (baseline) {
 			source.map(new MapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
 
