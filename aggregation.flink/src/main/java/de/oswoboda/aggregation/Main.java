@@ -137,6 +137,6 @@ public class Main {
 								break;
 			}
 		}
-		hadoopInputFormat.close();
+		hadoopInputFormat.closeInputFormat();
 	}
 }
