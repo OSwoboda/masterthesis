@@ -27,7 +27,6 @@ import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
 import de.oswoboda.aggregation.aggregators.AvgGroupCombine;
 import de.oswoboda.aggregation.aggregators.DevGroupCombine;
@@ -64,8 +63,6 @@ public class Main {
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
 		Job job = Job.getInstance();
-		job.setNumReduceTasks(0);
-		job.setOutputFormatClass(NullOutputFormat.class);
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
@@ -79,9 +76,8 @@ public class Main {
 		} else {
 			AccumuloInputFormat.setRanges(job, Collections.singleton(new Range()));
 		}
-		AccumuloInputFormat aif = new AccumuloInputFormat();
-		
-		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(aif, Key.class, Value.class, job);
+
+		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		if (baseline) {
 			source.map(new MapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
 
