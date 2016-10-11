@@ -78,7 +78,7 @@ public class Main {
 		} else {
 			AccumuloInputFormat.setRanges(job, Collections.singleton(new Range()));
 		}
-		HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(new AccumuloInputFormat(), Key.class, Value.class, job);
+		final HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(new AccumuloInputFormat(), Key.class, Value.class, job);
 		DataSet<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
 		if (baseline) {
 			source.map(new MapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
@@ -110,12 +110,14 @@ public class Main {
 					return false;
 				}
 			});
+			
 			DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
 	
 				private static final long serialVersionUID = 1L;
 	
 				@Override
 				public void flatMap(Tuple2<Key, Value> in, Collector<Tuple3<Long, Integer, Long>> out) throws Exception {
+					hadoopInputFormat.close();
 					Long value = Metric.parseValue(in.f1);
 					out.collect(new Tuple3<Long, Integer, Long>(value, 1, (long)Math.pow(value, 2)));
 				}
@@ -138,6 +140,5 @@ public class Main {
 								break;
 			}
 		}
-		hadoopInputFormat.close();
 	}
 }
