@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
+import org.apache.accumulo.core.client.mapred.AccumuloInputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -20,14 +20,15 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat;
+import org.apache.flink.api.java.hadoop.mapred.HadoopInputFormat;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapred.JobConf;
 
 import de.oswoboda.aggregation.aggregators.AvgGroupCombine;
 import de.oswoboda.aggregation.aggregators.DevGroupCombine;
@@ -63,7 +64,7 @@ public class Main {
 				Collections.singleton(new Range(startRow, endRow)) :
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
-		Job job = Job.getInstance();
+		JobConf job = new JobConf(new Configuration());
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
@@ -137,6 +138,6 @@ public class Main {
 								break;
 			}
 		}
-		hadoopInputFormat.closeInputFormat();
+		hadoopInputFormat.close();
 	}
 }
