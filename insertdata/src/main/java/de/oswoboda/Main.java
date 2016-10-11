@@ -147,6 +147,7 @@ public class Main {
 			
 			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<Text, Mutation>(new AccumuloOutputFormat(), job);
 			mutations.output(hadoopOutputFormat);
+			hadoopOutputFormat.close();
 		}
 		
 		env.execute("Insert Data");
