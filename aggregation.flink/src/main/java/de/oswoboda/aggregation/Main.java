@@ -17,10 +17,8 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -79,15 +77,7 @@ public class Main {
 
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		if (baseline) {
-			source.map(new MapFunction<Tuple2<Key,Value>, Tuple1<Long>>() {
-
-				private static final long serialVersionUID = -7604296459612218603L;
-
-				@Override
-				public Tuple1<Long> map(Tuple2<Key, Value> arg0) throws Exception {					
-					return new Tuple1<>(1L);
-				}
-			}).sum(0).print();
+			source.collect().size();
 		} else {
 			source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 				
