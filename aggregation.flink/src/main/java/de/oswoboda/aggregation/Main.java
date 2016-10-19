@@ -17,6 +17,7 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -77,7 +78,19 @@ public class Main {
 
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		if (baseline) {
-			source.collect().size();
+			source.combineGroup(new GroupCombineFunction<Tuple2<Key,Value>, Long>() {
+
+				private static final long serialVersionUID = -995877095390153426L;
+
+				@Override
+				public void combine(Iterable<Tuple2<Key, Value>> in, Collector<Long> out) throws Exception {
+					Long count = 0L;
+					for (@SuppressWarnings("unused") Tuple2<Key, Value> tuple : in) {
+						++count;
+					}
+					out.collect(count);
+				}
+			}).print();
 		} else {
 			source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 				
