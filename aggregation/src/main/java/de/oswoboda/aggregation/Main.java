@@ -60,6 +60,7 @@ public class Main {
 		options.addOption("u", "user", true, "accumulo user");
 		options.addOption("p", "passwd", true, "accumulo user password");
 		options.addOption("baseline", false, "if only a baseline should be made");
+		options.addOption("para", true, "parallelism");
 		
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
@@ -85,7 +86,7 @@ public class Main {
 		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
-		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 64);
+		BatchScanner bscan = conn.createBatchScanner(tableName, auths, Integer.parseInt(cmd.getOptionValue("para", "32")));
 		long startMillis;
 		if (cmd.hasOption("baseline")) {
 			try {
