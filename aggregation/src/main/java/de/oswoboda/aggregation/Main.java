@@ -85,7 +85,7 @@ public class Main {
 		Connector conn = inst.getConnector(cmd.getOptionValue("user", "root"), new PasswordToken(cmd.getOptionValue("passwd", "P@ssw0rd")));
 		
 		Authorizations auths = new Authorizations("standard");
-		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 32);
+		BatchScanner bscan = conn.createBatchScanner(tableName, auths, 320);
 		long startMillis;
 		if (cmd.hasOption("baseline")) {
 			try {
