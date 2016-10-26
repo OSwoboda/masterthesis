@@ -61,6 +61,7 @@ public class Main {
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
 		Job job = Job.getInstance();
+		AccumuloInputFormat.setAutoAdjustRanges(job, params.getBoolean("autoadjust", true));
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
