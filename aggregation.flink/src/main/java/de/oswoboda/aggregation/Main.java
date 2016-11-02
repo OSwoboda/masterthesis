@@ -15,6 +15,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
@@ -61,7 +62,6 @@ public class Main {
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
 		Job job = Job.getInstance();
-		AccumuloInputFormat.setAutoAdjustRanges(job, params.getBoolean("autoadjust", true));
 		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
@@ -92,7 +92,7 @@ public class Main {
 				}
 			}).print();
 		} else {
-			/*source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
+			source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 				
 				private static final long serialVersionUID = 1L;
 	
@@ -110,7 +110,7 @@ public class Main {
 					}
 					return false;
 				}
-			});*/
+			});
 			DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
 	
 				private static final long serialVersionUID = 1L;

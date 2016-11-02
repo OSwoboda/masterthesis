@@ -142,9 +142,6 @@ public class Main {
 					aggregator = resultAggregator;
 				}
 			    aggregator.merge(resultAggregator);
-			    /*if (resultAggregator.getValue() != null) {
-			    	LOG.info("Results from Aggregator "+results+": Value "+resultAggregator.getValue()+"; Count: "+resultAggregator.getCount());
-			    }*/
 			}
 			
 			LOG.info("Number of results: "+results);
