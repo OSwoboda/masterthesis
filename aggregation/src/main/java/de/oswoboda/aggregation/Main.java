@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
@@ -72,11 +73,6 @@ public class Main {
 		String aggregation = cmd.getOptionValue("agg", "min");
 		String percentile = cmd.getOptionValue("percentile", "50");
 		
-		TreeSet<String> stations = new TreeSet<>();
-		if (cmd.hasOption("stations")) {
-			stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
-		}
-		
 		LocalDate startDate = LocalDate.parse(start, DateTimeFormatter.BASIC_ISO_DATE);
 		LocalDate endDate = LocalDate.parse(end, DateTimeFormatter.BASIC_ISO_DATE);
 		String instanceName = cmd.getOptionValue("instance", "hdp-accumulo-instance");
@@ -107,15 +103,24 @@ public class Main {
 		}
 		
 		try {
-			LocalDate endRowDate = endDate;
-			if (stations.isEmpty()) {
-				endRowDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
+			TreeSet<String> stations = new TreeSet<>();
+			if (cmd.hasOption("stations")) {
+				stations.addAll(Arrays.asList(cmd.getOptionValues("stations")));
 			}
-			String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
-			String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
-			Set<Range> ranges = (stations.isEmpty()) ? 
-					Collections.singleton(new Range(startRow, endRow)) :
-						Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
+			Set<Range> ranges = new HashSet<>();
+			if (stations.isEmpty()) {
+				LocalDate endRangeDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
+				ranges = Collections.singleton(new Range(startDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR), endRangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)));
+			} else {								
+				for (String station : stations) {
+					LocalDate rangeDate = startDate;
+					do {
+						ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
+						rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
+					} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
+				}
+			}
+			
 			bscan.setRanges(ranges);
 			bscan.fetchColumnFamily(new Text(metricName));
 			IteratorSetting is = new IteratorSetting(500, AggregationIterator.class);
