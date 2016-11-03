@@ -61,8 +61,10 @@ public class Main {
 				Collections.singleton(new Range(startRow, endRow)) :
 					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
+		boolean batch = params.getBoolean("batch", true);
 		Job job = Job.getInstance();
-		AccumuloInputFormat.setBatchScan(job, params.getBoolean("batch", true));
+		AccumuloInputFormat.setBatchScan(job, batch);
+		AccumuloInputFormat.setAutoAdjustRanges(job, batch);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
