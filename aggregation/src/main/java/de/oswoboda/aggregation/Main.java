@@ -87,6 +87,9 @@ public class Main {
 		if (cmd.hasOption("baseline")) {
 			try {
 				bscan.setRanges(Collections.singleton(new Range()));
+				if (cmd.hasOption("metricName")) {
+					bscan.fetchColumnFamily(new Text(metricName));
+				}
 				startMillis = System.currentTimeMillis();
 				LOG.info("batchScan started");
 				long results = 0;
@@ -114,13 +117,10 @@ public class Main {
 			} else {								
 				for (String station : stations) {
 					LocalDate rangeDate = startDate;
-					int count = 0;
 					do {
 						ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
 						rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
-						count++;
 					} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
-					System.out.println(count);
 				}
 			}
 			
