@@ -114,11 +114,13 @@ public class Main {
 			} else {								
 				for (String station : stations) {
 					LocalDate rangeDate = startDate;
+					int count = 0;
 					do {
 						ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
 						rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
-						System.out.println(rangeDate);
+						count++;
 					} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
+					System.out.println(count);
 				}
 			}
 			
