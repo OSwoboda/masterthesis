@@ -117,6 +117,7 @@ public class Main {
 					do {
 						ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
 						rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
+						System.out.println(rangeDate);
 					} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
 				}
 			}
