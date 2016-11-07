@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -47,25 +48,27 @@ public class Main {
 		
 		String tableName = params.get("tableName", "oswoboda.bymonth");
 		boolean bymonth = tableName.contains("month") ? true : false;
+		
 		final TreeSet<String> stations = new TreeSet<>();
 		if (params.has("stations")) {
 			stations.addAll(Arrays.asList(params.get("stations")));
 		}
-		
-		LocalDate endRowDate = endDate;
+		Set<Range> ranges = new HashSet<>();
 		if (stations.isEmpty()) {
-			endRowDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
+			LocalDate endRangeDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
+			ranges = Collections.singleton(new Range(startDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR), endRangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)));
+		} else {								
+			for (String station : stations) {
+				LocalDate rangeDate = startDate;
+				do {
+					ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
+					rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
+				} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
+			}
 		}
-		String startRow = (bymonth) ? startDate.format(TimeFormatUtils.YEAR_MONTH) : startDate.format(TimeFormatUtils.YEAR);
-		String endRow = (bymonth) ? endRowDate.format(TimeFormatUtils.YEAR_MONTH) : endRowDate.format(TimeFormatUtils.YEAR);
-		Set<Range> ranges = stations.isEmpty() ? 
-				Collections.singleton(new Range(startRow, endRow)) :
-					Collections.singleton(new Range(startRow+"_"+stations.first(), endRow+"_"+stations.last()));
 		
-		boolean batch = params.getBoolean("batch", true);
 		Job job = Job.getInstance();
-		AccumuloInputFormat.setBatchScan(job, batch);
-		AccumuloInputFormat.setAutoAdjustRanges(job, batch);
+		AccumuloInputFormat.setBatchScan(job, true);
 		AccumuloInputFormat.setInputTableName(job, tableName);
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
