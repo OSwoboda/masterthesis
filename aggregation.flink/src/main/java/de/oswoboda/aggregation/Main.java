@@ -15,11 +15,9 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -40,8 +38,6 @@ public class Main {
 		// set up the batch execution environment
 		final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
 		final ParameterTool params = ParameterTool.fromArgs(args);
-		
-		boolean baseline = params.getBoolean("baseline", false);
 		
 		final LocalDate startDate = LocalDate.parse(params.get("start", "20140101"), DateTimeFormatter.BASIC_ISO_DATE);
 		final LocalDate endDate = LocalDate.parse(params.get("end", "20150101"), DateTimeFormatter.BASIC_ISO_DATE);
@@ -75,76 +71,55 @@ public class Main {
 		ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
 		
-		if (!baseline) {
-			AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
-			AccumuloInputFormat.setRanges(job, ranges);
-		} else {
-			AccumuloInputFormat.setRanges(job, Collections.singleton(new Range()));
-		}
+		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
+		AccumuloInputFormat.setRanges(job, ranges);
 
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
-		if (baseline) {
-			source.combineGroup(new GroupCombineFunction<Tuple2<Key,Value>, Long>() {
+		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
+			
+			private static final long serialVersionUID = 1L;
 
-				private static final long serialVersionUID = -995877095390153426L;
-
-				@Override
-				public void combine(Iterable<Tuple2<Key, Value>> in, Collector<Long> out) throws Exception {
-					Long count = 0L;
-					for (@SuppressWarnings("unused") Tuple2<Key, Value> tuple : in) {
-						++count;
+			@Override
+			public boolean filter(Tuple2<Key, Value> in) throws Exception {
+					
+				long start = startDate.toEpochDay();
+				long end = endDate.toEpochDay();
+				long timestamp = Metric.parseTimestamp(in.f0);
+				if (timestamp >= start && timestamp <= end) {
+					
+					if (stations.isEmpty() || stations.contains(Metric.parseStation(in.f0))) {
+						return true;
 					}
-					out.collect(count);
 				}
-			}).print();
-		} else {
-			source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
-				
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public boolean filter(Tuple2<Key, Value> in) throws Exception {
-						
-					long start = startDate.toEpochDay();
-					long end = endDate.toEpochDay();
-					long timestamp = Metric.parseTimestamp(in.f0);
-					if (timestamp >= start && timestamp <= end) {
-						
-						if (stations.isEmpty() || stations.contains(Metric.parseStation(in.f0))) {
-							return true;
-						}
-					}
-					return false;
-				}
-			});
-			DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
-	
-				private static final long serialVersionUID = 1L;
-	
-				@Override
-				public void flatMap(Tuple2<Key, Value> in, Collector<Tuple3<Long, Integer, Long>> out) throws Exception {
-					Long value = Metric.parseValue(in.f1);
-					out.collect(new Tuple3<Long, Integer, Long>(value, 1, (long)Math.pow(value, 2)));
-				}
-			});
-			switch (params.get("agg", "min")) {
-			case "percentile":	data.mapPartition(new PercentileMapPartition()).combineGroup(new PercentileCombineGroup(params.getInt("percentile", 50))).print();
-								break;
-			case "dev":			data.sum(0).andSum(1).andSum(2).combineGroup(new DevGroupCombine()).print();
-								break;
-			case "avg":			data.sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
-								break;
-			case "count":		data.sum(1).project(1).print();
-								break;
-			case "max":			data.max(0).project(0).print();
-								break;
-			case "sum":			data.sum(0).project(0).print();
-								break;
-			case "min":	
-			default:			data.min(0).project(0).print();
-								break;
+				return false;
 			}
+		});
+		DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple3<Long, Integer, Long>> out) throws Exception {
+				Long value = Metric.parseValue(in.f1);
+				out.collect(new Tuple3<Long, Integer, Long>(value, 1, (long)Math.pow(value, 2)));
+			}
+		});
+		switch (params.get("agg", "min")) {
+		case "percentile":	data.mapPartition(new PercentileMapPartition()).combineGroup(new PercentileCombineGroup(params.getInt("percentile", 50))).print();
+							break;
+		case "dev":			data.sum(0).andSum(1).andSum(2).combineGroup(new DevGroupCombine()).print();
+							break;
+		case "avg":			data.sum(0).andSum(1).combineGroup(new AvgGroupCombine()).print();
+							break;
+		case "count":		data.sum(1).project(1).print();
+							break;
+		case "max":			data.max(0).project(0).print();
+							break;
+		case "sum":			data.sum(0).project(0).print();
+							break;
+		case "min":	
+		default:			data.min(0).project(0).print();
+							break;
 		}
-		CleanUp.shutdownNow();
 	}
 }

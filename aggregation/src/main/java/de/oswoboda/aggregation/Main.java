@@ -60,7 +60,6 @@ public class Main {
 				.build());
 		options.addOption("u", "user", true, "accumulo user");
 		options.addOption("p", "passwd", true, "accumulo user password");
-		options.addOption("baseline", false, "if only a baseline should be made");
 		options.addOption("para", true, "parallelism");
 		
 		CommandLineParser parser = new DefaultParser();
@@ -84,27 +83,6 @@ public class Main {
 		Authorizations auths = new Authorizations("standard");
 		BatchScanner bscan = conn.createBatchScanner(tableName, auths, Integer.parseInt(cmd.getOptionValue("para", "32")));
 		long startMillis;
-		if (cmd.hasOption("baseline")) {
-			try {
-				bscan.setRanges(Collections.singleton(new Range()));
-				if (cmd.hasOption("metricName")) {
-					bscan.fetchColumnFamily(new Text(metricName));
-				}
-				startMillis = System.currentTimeMillis();
-				LOG.info("batchScan started");
-				long results = 0;
-				for(@SuppressWarnings("unused") Entry<Key,Value> entry : bscan) {
-					++results;
-				}
-				LOG.info("Number of results: "+results);				
-			} finally {
-				bscan.close();
-			}
-			long endMillis = System.currentTimeMillis();
-			LOG.info("batchScan finished; Duration: "+(endMillis-startMillis)+"ms");
-			System.exit(0);
-		}
-		
 		try {
 			TreeSet<String> stations = new TreeSet<>();
 			if (cmd.hasOption("stations")) {
