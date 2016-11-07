@@ -73,7 +73,7 @@ public class Main {
 		
 		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccumuloInputFormat.setRanges(job, ranges);
-
+		System.out.println(job.getJobSetupCleanupNeeded());
 		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
@@ -121,5 +121,6 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-	}
+		System.out.println(job.getJobSetupCleanupNeeded());
+	}	
 }
