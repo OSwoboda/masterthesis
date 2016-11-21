@@ -16,8 +16,8 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
+import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.io.OutputFormat;
@@ -145,7 +145,7 @@ public class Main {
 			
 			@Override
 			public void close() throws IOException {
-				CleanUp.shutdownNow();
+				ZooSession.shutdown();
 			}
 		});
 						break;
