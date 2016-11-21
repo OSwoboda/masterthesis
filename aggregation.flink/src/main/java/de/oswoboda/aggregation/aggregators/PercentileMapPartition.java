@@ -3,7 +3,7 @@ package de.oswoboda.aggregation.aggregators;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.accumulo.core.util.CleanUp;
+import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.MapPartitionFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -25,6 +25,6 @@ public class PercentileMapPartition implements MapPartitionFunction<Tuple3<Long,
 			}
 		}
 		out.collect(new Tuple2<TreeMap<Long, AtomicInteger>, Integer>(histogram, count));
-		CleanUp.shutdownNow();
+		ZooSession.shutdown();
 	}
 }
