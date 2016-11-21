@@ -122,6 +122,5 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		System.out.println(accInputFormat.getRecordReaders().size());
 	}	
 }
