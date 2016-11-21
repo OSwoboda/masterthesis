@@ -119,6 +119,8 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		accInputFormat.getRecordReader().close();
+		if (accInputFormat.getRecordReader() == null) {
+			System.out.println("null");
+		}
 	}	
 }
