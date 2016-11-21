@@ -6,10 +6,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.ClientConfiguration;
+import org.apache.accumulo.core.client.Connector;
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.IteratorSetting.Column;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.ZooKeeperInstance;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
@@ -17,17 +26,18 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.Pair;
-import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.io.OutputFormat;
+import org.apache.flink.api.common.io.InputFormat;
+import org.apache.flink.api.common.io.statistics.BaseStatistics;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.io.InputSplit;
+import org.apache.flink.core.io.InputSplitAssigner;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -77,7 +87,90 @@ public class Main {
 		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
 		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccumuloInputFormat.setRanges(job, ranges);
-		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
+		DataSet<Tuple2<Key,Value>> source = env.createInput(new InputFormat<Tuple2<Key, Value>, InputSplit>() {
+
+			private static final long serialVersionUID = -1955860485723592503L;
+			private BatchScanner bscan;
+			
+			@Override
+			public void close() throws IOException {
+				bscan.close();
+			}
+
+			@Override
+			public void configure(Configuration arg0) {
+				final LocalDate startDate = LocalDate.parse(params.get("start", "20140101"), DateTimeFormatter.BASIC_ISO_DATE);
+				final LocalDate endDate = LocalDate.parse(params.get("end", "20150101"), DateTimeFormatter.BASIC_ISO_DATE);
+				
+				String tableName = params.get("tableName", "oswoboda.bymonth");
+				boolean bymonth = tableName.contains("month") ? true : false;
+				
+				final TreeSet<String> stations = new TreeSet<>();
+				if (params.has("stations")) {
+					stations.addAll(Arrays.asList(params.get("stations")));
+				}
+				Set<Range> ranges = new HashSet<>();
+				if (stations.isEmpty()) {
+					LocalDate endRangeDate = bymonth ? endDate.plusMonths(1) : endDate.plusYears(1);
+					ranges = Collections.singleton(new Range(startDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR), endRangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)));
+				} else {								
+					for (String station : stations) {
+						LocalDate rangeDate = startDate;
+						do {
+							ranges.add(Range.exact(rangeDate.format(bymonth ? TimeFormatUtils.YEAR_MONTH : TimeFormatUtils.YEAR)+"_"+station));
+							rangeDate = bymonth ? rangeDate.plusMonths(1) : rangeDate.plusYears(1);
+						} while (rangeDate.isBefore(endDate) || rangeDate.isEqual(endDate));
+					}
+				}
+				
+				Instance inst = new ZooKeeperInstance("hdp-accumulo-instance", params.get("zoo", "localhost:2181"));
+				try {
+					Connector conn = inst.getConnector("root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
+					Authorizations auths = new Authorizations("standard");
+					bscan = conn.createBatchScanner(tableName, auths, 32);
+					bscan.setRanges(ranges);
+					bscan.fetchColumn(new Column(params.get("metricName", "TMIN")));
+				} catch (AccumuloException | AccumuloSecurityException | TableNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public InputSplit[] createInputSplits(int arg0) throws IOException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public InputSplitAssigner getInputSplitAssigner(InputSplit[] arg0) {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public BaseStatistics getStatistics(BaseStatistics arg0) throws IOException {
+				// TODO Auto-generated method stub
+				return null;
+			}
+
+			@Override
+			public Tuple2<Key, Value> nextRecord(Tuple2<Key, Value> arg0) throws IOException {
+				Entry<Key, Value> entry = bscan.iterator().next();
+				return new Tuple2<Key, Value>(entry.getKey(), entry.getValue());
+			}
+
+			@Override
+			public void open(InputSplit arg0) throws IOException {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public boolean reachedEnd() throws IOException {
+				return !bscan.iterator().hasNext();
+			}
+		});
+		//DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
 		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
 			private static final long serialVersionUID = 1L;

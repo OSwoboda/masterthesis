@@ -1,10 +1,9 @@
 package de.oswoboda.aggregation.aggregators;
 
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.GroupCombineFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
@@ -20,7 +19,6 @@ public class PercentileCombineGroup implements GroupCombineFunction<Tuple2<TreeM
 	
 	@Override
 	public void combine(Iterable<Tuple2<TreeMap<Long, AtomicInteger>, Integer>> in, Collector<Long> out) throws Exception {
-		ZooSession.shutdown();
 		int count = 0;
 		TreeMap<Long, AtomicInteger> histogram = null;
 		for (Tuple2<TreeMap<Long, AtomicInteger>, Integer> tuple : in) {
