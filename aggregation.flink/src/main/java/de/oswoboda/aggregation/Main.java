@@ -70,7 +70,7 @@ public class Main {
 		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
 		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
 		ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
-		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
+		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")).withZkTimeout(5000));
 		
 		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccumuloInputFormat.setRanges(job, ranges);
