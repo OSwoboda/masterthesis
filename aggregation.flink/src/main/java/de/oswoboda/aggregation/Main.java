@@ -19,6 +19,7 @@ import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -72,7 +73,9 @@ public class Main {
 		AccInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccInputFormat.setRanges(job, ranges);
 		AccInputFormat accInputFormat = new AccInputFormat();
-		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
+		HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(accInputFormat, Key.class, Value.class, job);
+		DataSet<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
+		//DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
 		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
 			private static final long serialVersionUID = 1L;
@@ -119,8 +122,7 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		if (accInputFormat.getRecordReader() == null) {
-			System.out.println("null");
-		}
+		hadoopInputFormat.close();
+		hadoopInputFormat.closeInputFormat();
 	}	
 }
