@@ -16,6 +16,7 @@ public class AccInputFormat extends AccumuloInputFormat {
 	@Override
 	public RecordReader<Key, Value> createRecordReader(InputSplit split, TaskAttemptContext context)
 			throws IOException, InterruptedException {
+		System.out.println("1");
 		recordReader = super.createRecordReader(split, context);
 		return recordReader;
 	}
