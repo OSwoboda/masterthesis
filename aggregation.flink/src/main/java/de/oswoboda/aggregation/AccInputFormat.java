@@ -8,11 +8,12 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AccInputFormat extends AccumuloInputFormat {
 	
-	protected static final Logger log = Logger.getLogger(AccInputFormat.class);
+	protected static final Logger log = LoggerFactory.getLogger(AccInputFormat.class);
 	
 	private RecordReader<Key, Value> recordReader = null;
 	
@@ -23,7 +24,7 @@ public class AccInputFormat extends AccumuloInputFormat {
 		log.error("createRecordReader");
 		log.debug("createRecordReader");
 		recordReader = super.createRecordReader(split, context);
-		return null;
+		return recordReader;
 	}
 	
 	public RecordReader<Key, Value> getRecordReader() {
