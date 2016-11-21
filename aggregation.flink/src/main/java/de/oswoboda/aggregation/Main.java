@@ -20,6 +20,7 @@ import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.hadoop.mapreduce.HadoopInputFormat;
+import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -74,9 +75,9 @@ public class Main {
 		AccInputFormat.setRanges(job, ranges);
 		AccInputFormat accInputFormat = new AccInputFormat();
 		HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(accInputFormat, Key.class, Value.class, job);
-		DataSet<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
+		DataSource<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
 		//DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
-		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
+		DataSet<Tuple2<Key,Value>> result = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
 			private static final long serialVersionUID = 1L;
 
@@ -95,7 +96,7 @@ public class Main {
 				return false;
 			}
 		});
-		DataSet<Tuple3<Long, Integer, Long>> data = source.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
+		DataSet<Tuple3<Long, Integer, Long>> data = result.flatMap(new FlatMapFunction<Tuple2<Key,Value>, Tuple3<Long, Integer, Long>>() {
 
 			private static final long serialVersionUID = 1L;
 
@@ -122,7 +123,6 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		hadoopInputFormat.close();
-		hadoopInputFormat.closeInputFormat();
+		source.getInputFormat().close();
 	}	
 }
