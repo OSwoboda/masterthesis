@@ -1,5 +1,6 @@
 package de.oswoboda.aggregation;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -19,11 +20,14 @@ import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -100,7 +104,6 @@ public class Main {
 			@Override
 			public void flatMap(Tuple2<Key, Value> in, Collector<Tuple3<Long, Integer, Long>> out) throws Exception {
 				Long value = Metric.parseValue(in.f1);
-				CleanUp.shutdownNow();
 				out.collect(new Tuple3<Long, Integer, Long>(value, 1, (long)Math.pow(value, 2)));
 			}
 		});
@@ -118,8 +121,34 @@ public class Main {
 		case "sum":			data.sum(0).project(0).print();
 							break;
 		case "min":	
-		default:			data.min(0).project(0).print();
-							break;
+		default:			data.min(0).project(0).output(new OutputFormat<Tuple>() {
+			
+			private static final long serialVersionUID = 1516387911596410923L;
+
+			@Override
+			public void writeRecord(Tuple arg0) throws IOException {
+				System.out.println(arg0.toString());
+				
+			}
+			
+			@Override
+			public void open(int arg0, int arg1) throws IOException {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void configure(Configuration arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void close() throws IOException {
+				CleanUp.shutdownNow();
+			}
+		});
+						break;
 		}
 	}	
 }
