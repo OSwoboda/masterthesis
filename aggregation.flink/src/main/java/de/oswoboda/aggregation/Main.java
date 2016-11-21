@@ -74,9 +74,9 @@ public class Main {
 		AccInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
 		AccInputFormat.setRanges(job, ranges);
 		AccInputFormat accInputFormat = new AccInputFormat();
-		HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(accInputFormat, Key.class, Value.class, job);
-		DataSource<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
-		//DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
+		//HadoopInputFormat<Key, Value> hadoopInputFormat = new HadoopInputFormat<>(accInputFormat, Key.class, Value.class, job);
+		//DataSource<Tuple2<Key,Value>> source = env.createInput(hadoopInputFormat);
+		DataSource<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
 		DataSet<Tuple2<Key,Value>> result = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
 			private static final long serialVersionUID = 1L;
@@ -123,6 +123,8 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		source.getInputFormat().close();
+		if (source.getInputFormat() == null) {
+			System.out.println("null");
+		}
 	}	
 }
