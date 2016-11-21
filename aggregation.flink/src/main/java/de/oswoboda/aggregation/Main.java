@@ -123,8 +123,5 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		if (source.getInputFormat() == null) {
-			System.out.println("null");
-		}
 	}	
 }

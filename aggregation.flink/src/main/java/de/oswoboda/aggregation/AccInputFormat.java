@@ -23,7 +23,7 @@ public class AccInputFormat extends AccumuloInputFormat {
 		log.error("createRecordReader");
 		log.debug("createRecordReader");
 		recordReader = super.createRecordReader(split, context);
-		return recordReader;
+		return null;
 	}
 	
 	public RecordReader<Key, Value> getRecordReader() {
