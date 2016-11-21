@@ -150,5 +150,6 @@ public class Main {
 		});
 						break;
 		}
+		env.execute();
 	}	
 }
