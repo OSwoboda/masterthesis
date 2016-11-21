@@ -121,35 +121,8 @@ public class Main {
 		case "sum":			data.sum(0).project(0).print();
 							break;
 		case "min":	
-		default:			data.min(0).project(0).output(new OutputFormat<Tuple>() {
-			
-			private static final long serialVersionUID = 1516387911596410923L;
-
-			@Override
-			public void writeRecord(Tuple arg0) throws IOException {
-				System.out.println(arg0.toString());
-				
-			}
-			
-			@Override
-			public void open(int arg0, int arg1) throws IOException {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void configure(Configuration arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void close() throws IOException {
-				ZooSession.shutdown();
-			}
-		});
-						break;
+		default:			data.min(0).project(0).print();
+							break;
 		}
-		env.execute();
 	}	
 }
