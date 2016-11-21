@@ -1,6 +1,8 @@
 package de.oswoboda.aggregation;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
@@ -15,19 +17,17 @@ public class AccInputFormat extends AccumuloInputFormat {
 	
 	protected static final Logger log = LoggerFactory.getLogger(AccInputFormat.class);
 	
-	private RecordReader<Key, Value> recordReader = null;
+	private List<RecordReader<Key, Value>> recordReaders = new ArrayList<>();
 	
 	@Override
 	public RecordReader<Key, Value> createRecordReader(InputSplit split, TaskAttemptContext context)
 			throws IOException, InterruptedException {
-		log.info("createRecordReader");
-		log.error("createRecordReader");
-		log.debug("createRecordReader");
-		recordReader = super.createRecordReader(split, context);
+		RecordReader<Key, Value> recordReader = super.createRecordReader(split, context);
+		recordReaders.add(recordReader);
 		return recordReader;
 	}
 	
-	public RecordReader<Key, Value> getRecordReader() {
-		return recordReader;
+	public List<RecordReader<Key, Value>> getRecordReaders() {
+		return recordReaders;
 	}
 }
