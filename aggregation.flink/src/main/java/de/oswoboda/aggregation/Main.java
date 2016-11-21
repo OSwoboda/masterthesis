@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -64,18 +63,16 @@ public class Main {
 		}
 		
 		Job job = Job.getInstance();
-		job.setInputFormatClass(AccumuloInputFormat.class);
-		AccumuloInputFormat.setBatchScan(job, true);
-		AccumuloInputFormat.setInputTableName(job, tableName);
-		AccumuloInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
-		AccumuloInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
+		AccInputFormat.setBatchScan(job, true);
+		AccInputFormat.setInputTableName(job, tableName);
+		AccInputFormat.setConnectorInfo(job, "root", new PasswordToken(params.get("passwd", "P@ssw0rd")));
+		AccInputFormat.setScanAuthorizations(job, new Authorizations("standard"));
 		ClientConfiguration clientConfig = ClientConfiguration.loadDefault();
-		AccumuloInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")).withZkTimeout(5000));
-		
-		AccumuloInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
-		AccumuloInputFormat.setRanges(job, ranges);
-		
-		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(new AccumuloInputFormat(), Key.class, Value.class, job);
+		AccInputFormat.setZooKeeperInstance(job, clientConfig.withInstance("hdp-accumulo-instance").withZkHosts(params.get("zoo", "localhost:2181")));
+		AccInputFormat.fetchColumns(job, Collections.singleton(new Pair<Text, Text>(new Text(params.get("metricName", "TMIN")), new Text(""))));
+		AccInputFormat.setRanges(job, ranges);
+		AccInputFormat accInputFormat = new AccInputFormat();
+		DataSet<Tuple2<Key,Value>> source = env.createHadoopInput(accInputFormat, Key.class, Value.class, job);
 		source = source.filter(new FilterFunction<Tuple2<Key,Value>>() {
 			
 			private static final long serialVersionUID = 1L;
@@ -122,5 +119,6 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
+		accInputFormat.getRecordReader().close();
 	}	
 }
