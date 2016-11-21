@@ -6,8 +6,8 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.format.DefaultFormatter;
+import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
@@ -53,7 +53,7 @@ public class AccInputFormat extends AccumuloInputFormat {
 			@Override
 			public void close() {
 				super.close();
-				CleanUp.shutdownNow();
+				ZooSession.shutdown();
 			}
 		};
 	}
