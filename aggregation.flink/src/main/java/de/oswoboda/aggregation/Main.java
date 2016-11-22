@@ -1,5 +1,6 @@
 package de.oswoboda.aggregation;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -15,17 +16,20 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.common.functions.MapPartitionFunction;
+import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -124,18 +128,33 @@ public class Main {
 							break;
 		}
 		
-		source.mapPartition(new MapPartitionFunction<Tuple2<Key,Value>, Tuple1<Integer>>() {
-
-			private static final long serialVersionUID = 4253091931510537747L;
+		source.output(new OutputFormat<Tuple2<Key,Value>>() {
+			
+			private static final long serialVersionUID = -774239509193583271L;
 
 			@Override
-			public void mapPartition(Iterable<Tuple2<Key, Value>> arg0, Collector<Tuple1<Integer>> arg1) throws Exception {
-				try {
-					ZooSession.shutdown();
-				} catch (Exception e) {
-					arg1.collect(new Tuple1<Integer>(1));
-				}
+			public void writeRecord(Tuple2<Key, Value> arg0) throws IOException {
+				// TODO Auto-generated method stub
+				
 			}
-		}).sum(0).print();
+			
+			@Override
+			public void open(int arg0, int arg1) throws IOException {
+				CleanUp.shutdownNow();				
+			}
+			
+			@Override
+			public void configure(Configuration arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void close() throws IOException {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		env.execute("CelanUp");
 	}	
 }
