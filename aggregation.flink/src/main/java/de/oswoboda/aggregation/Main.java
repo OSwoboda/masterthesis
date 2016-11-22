@@ -15,11 +15,14 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
+import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
+import org.apache.flink.api.common.functions.MapPartitionFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -120,5 +123,19 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
+		
+		source.mapPartition(new MapPartitionFunction<Tuple2<Key,Value>, Tuple1<Integer>>() {
+
+			private static final long serialVersionUID = 4253091931510537747L;
+
+			@Override
+			public void mapPartition(Iterable<Tuple2<Key, Value>> arg0, Collector<Tuple1<Integer>> arg1) throws Exception {
+				try {
+					CleanUp.shutdownNow();
+				} catch (Exception e) {
+					arg1.collect(new Tuple1<Integer>(1));
+				}
+			}
+		}).sum(0).print();
 	}	
 }
