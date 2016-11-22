@@ -18,14 +18,11 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
-import org.apache.accumulo.fate.zookeeper.ZooSession;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.functions.MapPartitionFunction;
 import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
-import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -140,7 +137,7 @@ public class Main {
 			
 			@Override
 			public void open(int arg0, int arg1) throws IOException {
-				CleanUp.shutdownNow();				
+								
 			}
 			
 			@Override
@@ -151,7 +148,7 @@ public class Main {
 			
 			@Override
 			public void close() throws IOException {
-				// TODO Auto-generated method stub
+				CleanUp.shutdownNow();
 				
 			}
 		});
