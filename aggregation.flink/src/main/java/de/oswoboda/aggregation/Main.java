@@ -1,6 +1,5 @@
 package de.oswoboda.aggregation;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -16,17 +15,14 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
-import org.apache.accumulo.core.util.CleanUp;
 import org.apache.accumulo.core.util.Pair;
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.FlatMapFunction;
-import org.apache.flink.api.common.io.OutputFormat;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.configuration.Configuration;
 import org.apache.flink.util.Collector;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -124,34 +120,5 @@ public class Main {
 		default:			data.min(0).project(0).print();
 							break;
 		}
-		
-		source.output(new OutputFormat<Tuple2<Key,Value>>() {
-			
-			private static final long serialVersionUID = -774239509193583271L;
-
-			@Override
-			public void writeRecord(Tuple2<Key, Value> arg0) throws IOException {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void open(int arg0, int arg1) throws IOException {
-								
-			}
-			
-			@Override
-			public void configure(Configuration arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void close() throws IOException {
-				CleanUp.shutdownNow();
-				
-			}
-		});
-		env.execute("CelanUp");
 	}	
 }
