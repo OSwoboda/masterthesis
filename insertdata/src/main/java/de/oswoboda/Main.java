@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.accumulo.core.client.BatchWriterConfig;
 import org.apache.accumulo.core.client.ClientConfiguration;
@@ -102,7 +103,7 @@ public class Main {
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
 			
 			BatchWriterConfig config = new BatchWriterConfig();
-			config.setMaxMemory(10000000L);
+			config.setMaxLatency(0, TimeUnit.MILLISECONDS);
 			config.setMaxWriteThreads(32);
 			
 			AccumuloOutputFormat.setBatchWriterOptions(job, config);
