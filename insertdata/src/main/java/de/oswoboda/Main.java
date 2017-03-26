@@ -103,8 +103,9 @@ public class Main {
 			AccumuloOutputFormat.setZooKeeperInstance(job, clientConfig.withInstance(instanceName).withZkHosts(zooServers));
 			
 			BatchWriterConfig config = new BatchWriterConfig();
-			config.setMaxLatency(0, TimeUnit.MILLISECONDS);
+			config.setMaxMemory(10000000L);
 			config.setMaxWriteThreads(32);
+			config.setMaxLatency(0, TimeUnit.MILLISECONDS);
 			
 			AccumuloOutputFormat.setBatchWriterOptions(job, config);
 			
@@ -148,6 +149,7 @@ public class Main {
 			
 			HadoopOutputFormat<Text, Mutation> hadoopOutputFormat = new HadoopOutputFormat<Text, Mutation>(new AccumuloOutputFormat(), job);
 			mutations.output(hadoopOutputFormat);
+			hadoopOutputFormat.close();
 		}
 		
 		env.execute("Insert Data");
